@@ -92,6 +92,14 @@ impl fmt::Display for BitMapFileHeader
     }
 }
 
+enum BitCount
+{
+    UNKNOWN = 0,
+    BW = 1,
+    COLOR_16_BIT = 4,
+    COLOR_256_BIT = 8,
+    ALL_COLORS = 24,
+}
 
 struct BitMapInfoHeader
 {
@@ -193,12 +201,16 @@ impl BitMapInfoHeader
         bytes
     }
 
-    pub fn get_row_buffer_size(&self) -> usize
+    pub fn get_row_buffer_size(&self, bit_count: BitCount) -> usize
     {
-        match (self.bi_width * 3) % 4 {
-            1 => 3,
-            2 => 2,
-            3 => 1,
+        match bit_count 
+        {
+            BitCount::ALL_COLORS => match (self.bi_width * 3) % 4 {
+                1 => 3,
+                2 => 2,
+                3 => 1,
+                _ => 0
+            }
             _ => 0
         }
     }
@@ -208,9 +220,15 @@ impl BitMapInfoHeader
         self.bi_size
     }
 
-    pub fn get_bit_count(&self) -> u16
+    pub fn get_bit_count(&self) -> BitCount
     {
-        self.bi_bit_count
+        match self.bi_bit_count {
+            1 => BitCount::BW,
+            4 => BitCount::COLOR_16_BIT,
+            8 => BitCount::COLOR_256_BIT,
+            24 => BitCount::ALL_COLORS,
+            _ => BitCount::UNKNOWN,
+        }
     }
 
     pub fn get_width(&self) -> u32
@@ -373,34 +391,73 @@ impl PixelData
         PixelData {red,green,blue}
     }
 
+    pub fn copy(color: &RgbQuad) -> PixelData
+    {
+        PixelData {
+            red: color.red,
+            green: color.green,
+            blue: color.blue,
+        }
+    }
+
     pub fn stream(
         bit_stream: &[u8],
         file: &BitMapFileHeader,
-        info: &BitMapInfoHeader
+        info: &BitMapInfoHeader,
+        colors: &Vec<RgbQuad>
     ) -> Vec<PixelData>
     {
         let mut array: Vec<PixelData> = Vec::new();
         let offset = file.get_off_bits() as usize;
-        let row_buffer = info.get_row_buffer_size();
+        let row_buffer = info.get_row_buffer_size(info.get_bit_count());
         let mut counter = 0;
+
+        let step = match info.get_bit_count()
+        {
+            BitCount::BW => 1,
+            BitCount::COLOR_16_BIT => 3,
+            BitCount::COLOR_256_BIT => 3,
+            BitCount::ALL_COLORS => 3,
+            BitCount::UNKNOWN => 3,
+        };
 
         for _ in 0..info.get_height()
         {
             for _ in 0..info.get_width()
             {
                 let i = offset + counter;
-                let data = match info.get_bit_count()
+                // if i >= bit_stream.len() { continue; }
+                match info.get_bit_count()
                 {
                     // TODO: implement parsing  
-                    1 => PixelData::new(0, 0, 0),
-                    4 => PixelData::new(0, 0, 0),
-                    8 => PixelData::new(0, 0, 0),
-                    24 => PixelData::new(bit_stream[i], bit_stream[i + 1], bit_stream[i + 2]),
-                    _ => PixelData::new(0, 0, 0),
+                    BitCount::BW => {
+                        for shift in 0..6
+                        {
+                            let index: usize = if bit_stream[i] >> shift == 0 { 0 } else { 1 };
+                            if counter < 9
+                            {
+                                print!("{} ", index);
+                            }
+                            array.push(PixelData::copy(&colors[index]));
+                        }
+                        if counter < 9
+                        {
+                            println!();
+                        }                    },
+                    BitCount::COLOR_16_BIT => {
+                       array.push( PixelData::new(0, 0, 0));
+                    },
+                    BitCount::COLOR_256_BIT => {
+                        array.push(PixelData::new(0, 0, 0));
+                    },
+                    BitCount::ALL_COLORS => {
+                        array.push(PixelData::new(bit_stream[i], bit_stream[i + 1], bit_stream[i + 2]));
+                    },
+                    _ => array.push(PixelData::new(0, 0, 0))
                 };
-                array.push(data);
-                counter += 3;
+                counter += step;
             }
+            println!("{}", counter);
             counter += row_buffer;
         }
         array
@@ -441,11 +498,9 @@ impl Bmp
     {
         let array = fs::read(filename).expect("Couldn't open file");
         let file = BitMapFileHeader::stream(&array);
-        println!("{}", file);
         let info = BitMapInfoHeader::stream(&array);
-        println!("{}", info);
         let colors = RgbQuad::stream(&array, &file, &info);
-        let data = PixelData::stream(&array, &file, &info);
+        let data = PixelData::stream(&array, &file, &info, &colors);
         Bmp {
             file,
             info,
@@ -471,7 +526,7 @@ impl Bmp
         {
             bytes.append(&mut c.as_bytes());
         }
-        let buffer_size = self.info.get_row_buffer_size();
+        let buffer_size = self.info.get_row_buffer_size(self.info.get_bit_count());
         for y in 0..self.info.get_height()
         {
             for x in 0..self.info.get_width()
@@ -501,7 +556,7 @@ impl fmt::Display for Bmp
             write!(f, "{}\n", c).unwrap();
         }
         write!(f, "Data ({}):\n", self.data.len()).unwrap();
-        for i in 0..self.data.len()
+        for i in 0..72//self.data.len()
         {
             write!(f, "{}:\t{}\n", i, self.data[i]).unwrap();
         }
@@ -511,10 +566,15 @@ impl fmt::Display for Bmp
 }
 
 fn main() {
-    let b1 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/pixel_data_test.bmp");
-    // println!("{}", b1);
-    b1.save("/home/divitoa/Program/RUST/bmp-writer/save.bmp");
-    let b2 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/save.bmp");
+    let b1 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_2.bmp");
+    println!("{}", b1);
+    // let b2 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_gray.bmp");
     // println!("{}", b2);
-    // let b2 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/bw_example.bmp");
+    // let b3 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_256.bmp");
+    // println!("{}", b3);
+    // let b4 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home.bmp");
+    // println!("{}", b4);
+    // b1.save("/home/divitoa/Program/RUST/bmp-writer/save.bmp");
+    // let b2 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/save.bmp");
+    // println!("{}", b2);
 }
