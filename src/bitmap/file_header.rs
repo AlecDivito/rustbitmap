@@ -1,4 +1,6 @@
 use super::util;
+use super::info_header::InfoHeader;
+use super::rgb_quad::RgbQuad;
 
 pub struct FileHeader
 {
@@ -62,19 +64,30 @@ impl FileHeader
         bytes
     }
 
-    pub fn get_file_header_byte_size(&self) -> usize
+    pub fn get_byte_size(&self) -> u32
     {
         14
     }
 
-    // pub fn get_size(&self) -> u32
-    // {
-    //     self.bf_size
-    // }
+    pub fn _get_size(&self) -> u32
+    {
+        self.bf_size
+    }
+
+    pub fn set_file_size(&mut self, size: u32)
+    {
+        self.bf_size = size;
+    }
 
     pub fn get_off_bits(&self) -> u32
     {
         self.bf_off_bits
+    }
+
+    pub fn set_offset(&mut self, info: & InfoHeader)
+    {
+        self.bf_off_bits = self.get_byte_size() + info.get_info_size()
+            + (info.get_colors_used() * RgbQuad::get_byte_size());
     }
 
 }

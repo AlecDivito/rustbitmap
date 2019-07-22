@@ -1,15 +1,25 @@
 mod bitmap;
 
 fn main() {
-    let b1 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_2.bmp");
-    println!("{}", b1);
+    // let mut b1 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_2.bmp").unwrap();
+    // println!("{}", b1);
+    // let b3 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/save.bmp").unwrap();
+    // println!("{}", b3);
+
+
+    // b1.save("/home/divitoa/Program/RUST/bmp-writer/save.bmp", bitmap::bit_count::BitCount::BW);
+
+
+
     // let b2 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_gray.bmp");
     // println!("{}", b2);
-    // let b3 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_256.bmp");
-    // println!("{}", b3);
-    // let b4 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home.bmp");
-    // println!("{}", b4);
-    b1.save("/home/divitoa/Program/RUST/bmp-writer/save.bmp");
-    let b2 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/save.bmp");
+    let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/test//w3c_home.bmp").unwrap();
+    // let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/pixel_data_test.bmp").unwrap();
+    println!("{}", b4);
+    b4.save("/home/divitoa/Program/RUST/bmp-writer/save.bmp", bitmap::bit_count::BitCount::BW).unwrap();
+
+
+    let b2 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/save.bmp").unwrap();
     println!("{}", b2);
+
 }

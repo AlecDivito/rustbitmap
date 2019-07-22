@@ -101,7 +101,7 @@ impl InfoHeader
         bytes
     }
 
-    pub fn get_row_buffer_size(&self, bit_count: BitCount) -> usize
+    pub fn get_row_buffer_size(&self, bit_count: BitCount) -> u32
     {
         match bit_count 
         {
@@ -131,6 +131,16 @@ impl InfoHeader
         }
     }
 
+    pub fn set_bit_count(&mut self, bit: BitCount)
+    {
+        self.bi_bit_count = bit as u16;
+    }
+
+    pub fn set_colors_used(&mut self, colors: u32)
+    {
+        self.bi_clr_used = colors;
+    }
+
     pub fn get_width(&self) -> u32
     {
         self.bi_width
@@ -139,6 +149,16 @@ impl InfoHeader
     pub fn get_height(&self) -> u32
     {
         self.bi_height
+    }
+
+    pub fn get_colors_used(&self) -> u32
+    {
+        self.bi_clr_used
+    }
+
+    pub fn set_image_size(&mut self, size: u32)
+    {
+        self.bi_size_image = size;
     }
 }
 

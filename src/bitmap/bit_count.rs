@@ -1,3 +1,4 @@
+#[derive(PartialEq, Clone, Copy)]
 pub enum BitCount
 {
     UNKNOWN = 0,

@@ -1,7 +1,7 @@
 use super::file_header::FileHeader;
 use super::info_header::InfoHeader;
 
-pub struct RgbQuad
+pub struct Rgb
 {
     // blue part of color
     blue: u8,
@@ -10,10 +10,10 @@ pub struct RgbQuad
     // red part of color
     red: u8,
     // must always be set to zero
-    reserved: u8,
+    alpha: u8,
 }
 
-impl RgbQuad
+impl Rgb
 {
     /**
      * Create a new rgb color
@@ -23,51 +23,14 @@ impl RgbQuad
      * @param {u8} red
      * @return {RgbQuad}
      */
-    pub fn new(blue: u8, green: u8, red: u8) -> RgbQuad
+    pub fn new(blue: u8, green: u8, red: u8) -> Rgb
     {
-        RgbQuad {
+        Rgb {
             blue,
             green,
             red,
-            reserved: 0
+            alpha: 0
         }
-    }
-
-    pub fn stream(
-        bit_stream: &[u8],
-        file: & FileHeader,
-        info: & InfoHeader
-    ) -> Vec<RgbQuad>
-    {
-        let mut array: Vec<RgbQuad> = Vec::new();
-        let mut i: usize = file.get_file_header_byte_size() + info.get_info_size() as usize;
-
-        while i < file.get_off_bits() as usize
-        {
-            array.push(RgbQuad::new(bit_stream[i], bit_stream[i+1], bit_stream[i+2]));
-            i += 4;
-        }
-
-        array
-    }
-
-    pub fn as_bytes(&self) -> Vec<u8>
-    {
-        let mut bytes = Vec::with_capacity(3);
-        bytes.push(self.blue);
-        bytes.push(self.green);
-        bytes.push(self.red);
-        bytes
-    }
-
-    pub fn get_red(&self) -> u8
-    {
-        self.red
-    }
-
-    pub fn get_green(&self) -> u8
-    {
-        self.green
     }
 
     pub fn get_blue(&self) -> u8
@@ -75,16 +38,106 @@ impl RgbQuad
         self.blue
     }
 
+    pub fn get_green(&self) -> u8
+    {
+        self.green
+    }
+
+    pub fn get_red(&self) -> u8
+    {
+        self.red
+    }
+
+    pub fn get_alpha(&self) -> u8
+    {
+        self.alpha
+    }
+}
+
+impl std::fmt::Display for Rgb
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        write!(f, "Red: {}, Green: {}, Blue: {}, Alpha: {}",
+            self.red,
+            self.green,
+            self.blue,
+            self.alpha)
+    }
+}
+
+pub struct RgbQuad
+{
+    data: Vec<Rgb>,
+}
+
+impl RgbQuad
+{
+
+
+    pub fn stream(
+        bit_stream: &[u8],
+        file: & FileHeader,
+        info: & InfoHeader
+    ) -> RgbQuad
+    {
+        let mut data = Vec::new();
+        let offset = file.get_byte_size() + info.get_info_size();
+
+        for index in 0..info.get_colors_used()
+        {
+            let i: usize = ((index * 4) + offset) as usize;
+            data.push(Rgb::new(bit_stream[i], bit_stream[i+1], bit_stream[i+2]));
+        }
+
+        RgbQuad { data }
+    }
+
+    pub fn get_byte_size() -> u32
+    {
+        4
+    }
+
+    pub fn bw() -> RgbQuad
+    {
+        let mut data = Vec::with_capacity(2);
+        data.push(Rgb::new(0, 0, 0));
+        data.push(Rgb::new(255, 255, 255));
+        RgbQuad { data }
+    }
+
+    pub fn empty() -> RgbQuad
+    {
+        RgbQuad { data: Vec::new() }
+    }
+
+    pub fn as_bytes(&self) -> Vec<u8>
+    {
+        let mut bytes = Vec::new();
+        for rgb in &self.data
+        {
+            bytes.push(rgb.get_blue());
+            bytes.push(rgb.get_green());
+            bytes.push(rgb.get_red());
+            bytes.push(rgb.get_alpha());
+        }
+        bytes
+    }
+
+    pub fn len(&self) -> usize
+    {
+        self.data.len()
+    }
 }
 
 impl std::fmt::Display for RgbQuad
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
-        write!(f, "Red: {}, Green: {}, Blue: {}, Reserved: {}",
-            self.red,
-            self.green,
-            self.blue,
-            self.reserved)
+        for c in &self.data
+        {
+            write!(f, "{}\n", c).unwrap();
+        }
+        write!(f, "")
     }
 }

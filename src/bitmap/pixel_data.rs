@@ -1,105 +1,55 @@
-use super::rgb_quad::RgbQuad;
+use std::ops::{Index, IndexMut};
+
+use super::rgb_quad::{Rgb, RgbQuad};
 use super::file_header::FileHeader;
 use super::info_header::InfoHeader;
-use super::bit_count::BitCount;
 
-pub struct PixelData
+pub struct Pixel
 {
     red: u8,
     green: u8,
     blue: u8,
 }
 
-impl PixelData
+impl Pixel
 {
-    pub fn new(blue: u8, green: u8, red: u8) -> PixelData
+    pub fn new(blue: u8, green: u8, red: u8) -> Pixel
     {
-        PixelData {red,green,blue}
+        Pixel {red,green,blue}
     }
 
-    pub fn copy(color: &RgbQuad) -> PixelData
+    pub fn _copy(color: &Rgb) -> Pixel
     {
-        PixelData {
+        Pixel {
             red: color.get_red(),
             green: color.get_green(),
             blue: color.get_blue(),
         }
     }
 
-    pub fn stream(
-        bit_stream: &[u8],
-        file: &FileHeader,
-        info: &InfoHeader,
-        colors: &Vec<RgbQuad>
-    ) -> Vec<PixelData>
+    pub fn is_white(&self) -> bool
     {
-        let mut array: Vec<PixelData> = Vec::new();
-        let offset = file.get_off_bits() as usize;
-        let row_buffer = info.get_row_buffer_size(info.get_bit_count());
-        let mut counter = 0;
-
-        let step = match info.get_bit_count()
-        {
-            BitCount::BW => 1,
-            BitCount::Color16Bit => 3,
-            BitCount::Color256Bit => 3,
-            BitCount::AllColors => 3,
-            BitCount::UNKNOWN => 3,
-        };
-
-        for _ in 0..info.get_height()
-        {
-            for _ in 0..info.get_width()
-            {
-                let i = offset + counter;
-                // if i >= bit_stream.len() { continue; }
-                match info.get_bit_count()
-                {
-                    // TODO: implement parsing  
-                    BitCount::BW => {
-                        for shift in 0..6
-                        {
-                            let index: usize = if bit_stream[i] >> shift == 0 { 0 } else { 1 };
-                            if counter < 9
-                            {
-                                print!("{} ", index);
-                            }
-                            array.push(PixelData::copy(&colors[index]));
-                        }
-                        if counter < 9
-                        {
-                            println!();
-                        }                    },
-                    BitCount::Color16Bit => {
-                       array.push( PixelData::new(0, 0, 0));
-                    },
-                    BitCount::Color256Bit => {
-                        array.push(PixelData::new(0, 0, 0));
-                    },
-                    BitCount::AllColors => {
-                        array.push(PixelData::new(bit_stream[i], bit_stream[i + 1], bit_stream[i + 2]));
-                    },
-                    _ => array.push(PixelData::new(0, 0, 0))
-                };
-                counter += step;
-            }
-            println!("{}", counter);
-            counter += row_buffer;
-        }
-        array
+        self.red == 255 && self.green == 255 && self.blue == 255
     }
 
-    pub fn as_bytes(&self) -> Vec<u8>
+    pub fn set_red(&mut self, red: u8)
     {
-        let mut bytes = Vec::with_capacity(3);
-        bytes.push(self.blue);
-        bytes.push(self.green);
-        bytes.push(self.red);
-        bytes
+        self.red = red;
     }
+
+    pub fn set_green(&mut self, green: u8)
+    {
+        self.green = green;
+    }
+
+    pub fn set_blue(&mut self, blue: u8)
+    {
+        self.blue = blue;
+    }
+
 }
 
-impl std::fmt::Display for PixelData
+impl std::fmt::Display for Pixel
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
@@ -107,5 +57,125 @@ impl std::fmt::Display for PixelData
             self.red,
             self.green,
             self.blue)
+    }
+}
+
+pub struct PixelData
+{
+    pixels: Vec<Pixel>,
+    padding: u32,
+    width: u32,
+    height: u32,
+}
+
+impl PixelData
+{
+
+    pub fn stream(
+        bit_stream: &[u8],
+        file: &FileHeader,
+        info: &InfoHeader,
+        _colors: &RgbQuad
+    ) -> PixelData
+    {
+        let mut pixels: Vec<Pixel> = Vec::new();
+        let offset = file.get_off_bits();
+        let padding = info.get_row_buffer_size(info.get_bit_count());
+        let step = 3; // TODO: why is step 3 (I know why but documentation)
+        let mut counter = 0;
+
+        for _ in 0..info.get_height()
+        {
+            for _ in 0..info.get_width()
+            {
+                let i = (offset + counter) as usize;
+                let p = Pixel::new(bit_stream[i], bit_stream[i + 1], bit_stream[i + 2]);
+                pixels.push(p);
+                counter += step;
+            }
+            counter += padding;
+        }
+        PixelData {
+            pixels,
+            padding,
+            width: info.get_width(),
+            height: info.get_height()
+        }
+    }
+
+    pub fn convert_to_bw(&mut self)
+    {
+        // update all colors to ether black or white
+        for c in &mut self.pixels
+        {
+            if !c.is_white()
+            {
+                c.set_blue(0);
+                c.set_red(0);
+                c.set_green(0);
+            }
+        }
+    }
+
+    pub fn get_width(&self) -> u32
+    {
+        self.width
+    }
+
+    pub fn _get_height(&self) -> u32
+    {
+        self.height
+    }
+
+    pub fn as_bytes(&self) -> Vec<u8>
+    {
+        let mut bytes = Vec::new();
+        for p in &self.pixels
+        {
+            bytes.push(p.blue);
+            bytes.push(p.green);
+            bytes.push(p.red);
+        }
+        bytes
+    }
+
+    pub fn len(&self) -> usize
+    {
+        self.pixels.len()
+    }
+
+    pub fn get_bytes_size(&self) -> u32
+    {
+        let used_bits = self.pixels.len() as u32 * 3;
+        let padding = self.padding * self.height;
+        used_bits + padding
+    }
+}
+
+impl Index<usize> for PixelData
+{
+    type Output = Pixel;
+    fn index<'a>(&'a self, i: usize) -> &'a Pixel
+    {
+        &self.pixels[i]
+    }
+}
+
+impl IndexMut<usize> for PixelData
+{
+    fn index_mut<'a>(&'a mut self, i: usize) -> &'a mut Pixel {
+        &mut self.pixels[i]
+    }
+}
+
+impl std::fmt::Display for PixelData
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        for p in 0..5//&self.pixels
+        {
+            write!(f, "{}: {}\n", p, self.pixels[p]).unwrap();
+        }
+        write!(f, "")
     }
 }
