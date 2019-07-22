@@ -172,9 +172,9 @@ impl std::fmt::Display for PixelData
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
-        for p in 0..5//&self.pixels
+        for p in 0..std::cmp::min(5, self.pixels.len()) as usize
         {
-            write!(f, "{}: {}\n", p, self.pixels[p]).unwrap();
+            write!(f, "{}: {}\n", p, self.pixels[p as usize]).unwrap();
         }
         write!(f, "")
     }

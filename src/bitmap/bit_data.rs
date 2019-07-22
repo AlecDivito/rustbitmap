@@ -93,7 +93,7 @@ impl std::fmt::Display for BitData
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
-        for p in 0..5// &self.data
+        for p in 0..std::cmp::min(5, self.data.len()) as usize
         {
             write!(f, "{}:\t{:#b}\n", p, self.data[p]).unwrap();
         }
