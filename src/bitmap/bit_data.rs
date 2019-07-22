@@ -34,31 +34,36 @@ impl BitData
         let mut shift = 0;
         for i in 0..pixels.len()
         {
-            shift = (counter + 1) % 8;
+            counter += 1;
+            shift = counter % 8;
             let step = if pixels[i].is_white() { 1 } else { 0 };
             byte = byte << 1;
             byte += step;
-            counter += 1;
-            if shift == 0 && i != 0
+            println!("b: ?{} {}:\t{}\t{}\t{:#b}", shift, counter,  byte_padding, bit_padding, byte);
+
+            if shift == 0 && i != 0 && pixels.get_width() >= 8
             {
                 bytes.push(byte);
                 byte = 0;
             }
-            if i % pixels.get_width() as usize == 0 && i != 0
+            if counter % pixels.get_width() == 0 && i != 0
             {
                 if bit_padding != 0
                 {
-                    // println!("{}:\t{}\t{:#b}", counter, bit_padding, byte);
+                    // println!("b: {}:\t{}\t{}\t{:#b}", counter,  byte_padding, bit_padding, byte);
                     byte = byte << bit_padding;
+                    println!("\na: {}:\t{}\t{}\t{:#b}", counter, byte_padding,  bit_padding, byte);
                     bytes.push(byte);
                     byte = 0;
-                    counter += bit_padding;
+                    // counter += bit_padding - if pixels.get_width() < 8 { 1 } else { 0 };
+                    counter = 0;
                 }
-                // println!("{}", counter);
+
                 for _ in 0..byte_padding
                 {
                     bytes.push(0);
                 }
+                println!("{} {}\n", bytes.len(), counter);
             }
         }
         if shift != 0
@@ -111,14 +116,14 @@ impl std::fmt::Display for BitData
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
-        for p in 0..std::cmp::min(22, self.data.len()) as usize
+        for p in 0..self.data.len()//0..std::cmp::min(22, self.data.len()) as usize
         {
             write!(f, "{}:\t{:#b}\n", p, self.data[p]).unwrap();
         }
-        for p in ((self.data.len() - 5)..self.data.len()).rev()
-        {
-            write!(f, "{}:\t{:#b}\n", p, self.data[p]).unwrap();
-        }
+        // for p in ((self.data.len() - 5)..self.data.len()).rev()
+        // {
+        //     write!(f, "{}:\t{:#b}\n", p, self.data[p]).unwrap();
+        // }
         write!(f, "")
     }
 }

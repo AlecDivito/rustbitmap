@@ -13,8 +13,8 @@ fn main() {
 
     // let b2 = Bmp::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home_gray.bmp");
     // println!("{}", b2);
-    let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/bw_example.bmp").unwrap();
-    // let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/sqr_ex.bmp").unwrap();
+    let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/example.bmp").unwrap();
+    // let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/sm_ex.bmp").unwrap();
     // let mut b4 = bitmap::file::File::read("/home/divitoa/Program/RUST/bmp-writer/test/w3c_home.bmp").unwrap();
     println!("{}", b4);
     b4.save("/home/divitoa/Program/RUST/bmp-writer/save.bmp", bitmap::bit_count::BitCount::BW).unwrap();
