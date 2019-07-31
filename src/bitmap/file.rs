@@ -62,6 +62,8 @@ impl File
         };
         self.data = match (self.info.get_bit_count(), bit_count) {
             (BitCount::AllColors, BitCount::BW) => self.data.convert_pixels_to_bw(),
+            // BW => ALLCOLORS
+            // 
             _ => return Err("Converting not supported with types choosen"),
         };
         self.info.set_colors_used(self.colors.len() as u32);

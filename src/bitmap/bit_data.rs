@@ -39,7 +39,6 @@ impl BitData
             let step = if pixels[i].is_white() { 1 } else { 0 };
             byte = byte << 1;
             byte += step;
-            println!("b: ?{} {}:\t{}\t{}\t{:#b}", shift, counter,  byte_padding, bit_padding, byte);
 
             if shift == 0 && i != 0 && pixels.get_width() >= 8
             {
@@ -50,12 +49,9 @@ impl BitData
             {
                 if bit_padding != 0
                 {
-                    // println!("b: {}:\t{}\t{}\t{:#b}", counter,  byte_padding, bit_padding, byte);
                     byte = byte << bit_padding;
-                    println!("\na: {}:\t{}\t{}\t{:#b}", counter, byte_padding,  bit_padding, byte);
                     bytes.push(byte);
                     byte = 0;
-                    // counter += bit_padding - if pixels.get_width() < 8 { 1 } else { 0 };
                     counter = 0;
                 }
 
@@ -63,7 +59,6 @@ impl BitData
                 {
                     bytes.push(0);
                 }
-                println!("{} {}\n", bytes.len(), counter);
             }
         }
         if shift != 0

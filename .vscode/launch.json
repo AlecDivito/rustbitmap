@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceRoot}/target/debug/bmp-writer",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Run Debug Build",
+            "sourceLanguages": ["rust"]
+        }
+    ]
+}

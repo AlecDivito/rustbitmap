@@ -6,4 +6,5 @@ pub enum BitCount
     Color16Bit = 4,
     Color256Bit = 8,
     AllColors = 24,
+    AllColorsAndShades = 32,
 }

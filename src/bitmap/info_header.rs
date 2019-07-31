@@ -127,6 +127,7 @@ impl InfoHeader
             4 => BitCount::Color16Bit,
             8 => BitCount::Color256Bit,
             24 => BitCount::AllColors,
+            32 => BitCount::AllColorsAndShades,
             _ => BitCount::UNKNOWN,
         }
     }
