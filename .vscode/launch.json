@@ -5,7 +5,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceRoot}/target/debug/bmp-writer",
+            "program": "${workspaceRoot}/target/debug/rbitmap",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "Run Debug Build",
