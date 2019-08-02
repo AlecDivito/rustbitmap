@@ -23,16 +23,18 @@ impl FileHeader
      * @param {u32} offset from beginning of file to bitmap data
      * @return {FileHeader}
      */
-    // pub fn new(size: u32, offset: u32) -> FileHeader
-    // {
-    //     FileHeader {
-    //         bf_type: ['B', 'M'],
-    //         bf_size: size,
-    //         bf_reserved1: 0,
-    //         bf_reserved2: 0,
-    //         bf_off_bits: offset,
-    //     }
-    // }
+    pub fn new(data_size: u32, color_size: u32, info_size: u32) -> FileHeader
+    {
+        let bf_size = data_size + color_size + info_size + 14;
+        let bf_off_bits = info_size + 14;
+        FileHeader {
+            bf_type: ['B', 'M'],
+            bf_size,
+            bf_reserved1: 0,
+            bf_reserved2: 0,
+            bf_off_bits,
+        }
+    }
 
     /**
      * Create a new Bit Map File Header from stream of bytes
@@ -84,10 +86,10 @@ impl FileHeader
         self.bf_off_bits
     }
 
-    pub fn set_offset(&mut self, info: & InfoHeader)
+    pub fn set_offset(&mut self, info: &InfoHeader, colors: &RgbQuad)
     {
         self.bf_off_bits = self.get_byte_size() + info.get_info_size()
-            + (info.get_colors_used() * RgbQuad::get_byte_size());
+            + colors.get_bytes_size();
     }
 
 }

@@ -10,6 +10,16 @@ pub struct Rgba
 
 impl Rgba
 {
+    pub fn black() -> Rgba
+    {
+        Rgba {
+            red: 0,
+            green: 0,
+            blue: 0,
+            alpha: 100
+        }
+    }
+
     pub fn rgb(red: u8, green: u8, blue: u8) -> Rgba
     {
         Rgba {
@@ -17,6 +27,26 @@ impl Rgba
             green,
             blue,
             alpha: 100
+        }
+    }
+
+    pub fn bgr(blue: u8, green: u8, red: u8) -> Rgba
+    {
+        Rgba {
+            red,
+            green,
+            blue,
+            alpha: 100
+        }
+    }
+
+    pub fn bgra(blue: u8, green: u8, red: u8, alpha: u8) -> Rgba
+    {
+        Rgba {
+            red,
+            green,
+            blue,
+            alpha: std::cmp::min(alpha, 100)
         }
     }
 
@@ -68,5 +98,17 @@ impl std::cmp::PartialEq for Rgba
         self.green == other.green &&
         self.blue == other.blue &&
         self.alpha == other.alpha
+    }
+}
+
+impl std::fmt::Display for Rgba
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        write!(f, "Red: {}, Green: {}, Blue: {}, Alpha: {}",
+            self.red,
+            self.green,
+            self.blue,
+            self.alpha)
     }
 }

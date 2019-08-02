@@ -1,80 +1,14 @@
 use super::file_header::FileHeader;
 use super::info_header::InfoHeader;
-
-pub struct Rgb
-{
-    // blue part of color
-    blue: u8,
-    // green part of color
-    green: u8,
-    // red part of color
-    red: u8,
-    // must always be set to zero
-    alpha: u8,
-}
-
-impl Rgb
-{
-    /**
-     * Create a new rgb color
-     * 
-     * @param {u8} blue
-     * @param {u8} green
-     * @param {u8} red
-     * @return {RgbQuad}
-     */
-    pub fn new(blue: u8, green: u8, red: u8) -> Rgb
-    {
-        Rgb {
-            blue,
-            green,
-            red,
-            alpha: 0
-        }
-    }
-
-    pub fn get_blue(&self) -> u8
-    {
-        self.blue
-    }
-
-    pub fn get_green(&self) -> u8
-    {
-        self.green
-    }
-
-    pub fn get_red(&self) -> u8
-    {
-        self.red
-    }
-
-    pub fn get_alpha(&self) -> u8
-    {
-        self.alpha
-    }
-}
-
-impl std::fmt::Display for Rgb
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
-    {
-        write!(f, "Red: {}, Green: {}, Blue: {}, Alpha: {}",
-            self.red,
-            self.green,
-            self.blue,
-            self.alpha)
-    }
-}
+use super::rgba::Rgba;
 
 pub struct RgbQuad
 {
-    data: Vec<Rgb>,
+    data: Vec<Rgba>,
 }
 
 impl RgbQuad
 {
-
-
     pub fn stream(
         bit_stream: &[u8],
         file: & FileHeader,
@@ -87,23 +21,15 @@ impl RgbQuad
         for index in 0..info.get_colors_used()
         {
             let i: usize = ((index * 4) + offset) as usize;
-            data.push(Rgb::new(bit_stream[i], bit_stream[i+1], bit_stream[i+2]));
+            data.push(Rgba::bgra(bit_stream[i], bit_stream[i+1], bit_stream[i+2], bit_stream[i+3]));
         }
 
         RgbQuad { data }
     }
 
-    pub fn get_byte_size() -> u32
+    pub fn get_bytes_size(&self) -> u32
     {
-        4
-    }
-
-    pub fn bw() -> RgbQuad
-    {
-        let mut data = Vec::with_capacity(2);
-        data.push(Rgb::new(0, 0, 0));
-        data.push(Rgb::new(255, 255, 255));
-        RgbQuad { data }
+        4 * self.data.len() as u32
     }
 
     pub fn empty() -> RgbQuad
@@ -122,6 +48,11 @@ impl RgbQuad
             bytes.push(rgb.get_alpha());
         }
         bytes
+    }
+
+    pub fn clone_colors(&self) -> Vec<Rgba>
+    {
+        self.data.clone()
     }
 
     pub fn len(&self) -> usize

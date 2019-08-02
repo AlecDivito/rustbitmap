@@ -1,5 +1,7 @@
 use super::util;
-use super::bit_count::BitCount;
+use super::bit_depth::BitDepth;
+
+use super::map::BitMap;
 
 pub struct InfoHeader
 {
@@ -17,7 +19,7 @@ pub struct InfoHeader
     //  - 4 (16 colors)
     //  - 8 (256 colors)
     //  - 24 (16.7 million colors)
-    bi_bit_count: u16,
+    bi_bit_depth: u16,
     // specifies the type of compression, usually set to zero (no compression)
     bi_compression: u32,
     // specifies the size of the image data, in bytes. If there is no
@@ -30,7 +32,7 @@ pub struct InfoHeader
     // usually set to zero
     bi_y_pxls_per_meter: u32,
     // specifies the number of colors used in the bitmap, if set to zero the
-    // number of colors is calculated using the biBitCount member.
+    // number of colors is calculated using the biBitDepth member.
     bi_clr_used: u32,
     // specifies the number of color that are 'important' for the bitmap, if set
     // to zero, all colors are important
@@ -39,6 +41,23 @@ pub struct InfoHeader
 
 impl InfoHeader
 {
+    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader
+    {
+        InfoHeader {
+            bi_size: 40,
+            bi_width: bitmap.get_width(),
+            bi_height: bitmap.get_height(),
+            bi_bit_depth: bit_depth as u16,
+            bi_planes: 1,
+            bi_compression: 0,
+            bi_size_image: 0,
+            bi_x_pxls_per_meter: 0,
+            bi_y_pxls_per_meter: 0,
+            bi_clr_used: 0,
+            bi_clr_important: 0,
+        }
+    }
+
     /**
      * Create a new Bit Map Info Header
      * 
@@ -48,13 +67,13 @@ impl InfoHeader
      * @param {u16} number of bits per pixel
      * @return {InfoHeader}
      */
-    // pub fn new(bi_size: u32, bi_width: u32, bi_height: u32, bi_bit_count: u16) -> InfoHeader
+    // pub fn new(bi_size: u32, bi_width: u32, bi_height: u32, bi_bit_depth: u16) -> InfoHeader
     // {
     //     InfoHeader {
     //         bi_size,
     //         bi_width,
     //         bi_height,
-    //         bi_bit_count,
+    //         bi_bit_depth,
     //         bi_planes: 0,
     //         bi_compression: 0,
     //         bi_size_image: 0,
@@ -74,7 +93,7 @@ impl InfoHeader
             bi_width: util::byte_slice_to_u32(bit_stream, & mut i),
             bi_height: util::byte_slice_to_u32(bit_stream, & mut i),
             bi_planes: util::byte_slice_to_u16(bit_stream, & mut i),
-            bi_bit_count: util::byte_slice_to_u16(bit_stream, & mut i),
+            bi_bit_depth: util::byte_slice_to_u16(bit_stream, & mut i),
             bi_compression: util::byte_slice_to_u32(bit_stream, & mut i),
             bi_size_image: util::byte_slice_to_u32(bit_stream, & mut i),
             bi_x_pxls_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
@@ -91,7 +110,7 @@ impl InfoHeader
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_width));
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_height));
         bytes.extend_from_slice(&util::byte_slice_from_u16(self.bi_planes));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.bi_bit_count));
+        bytes.extend_from_slice(&util::byte_slice_from_u16(self.bi_bit_depth));
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_compression));
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_size_image));
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_x_pxls_per_meter));
@@ -101,40 +120,26 @@ impl InfoHeader
         bytes
     }
 
-    pub fn get_row_buffer_size(&self, bit_count: BitCount) -> u32
-    {
-        match bit_count 
-        {
-            BitCount::AllColors => match (self.bi_width * 3) % 4 {
-                1 => 3,
-                2 => 2,
-                3 => 1,
-                _ => 0
-            }
-            _ => 0
-        }
-    }
-
     pub fn get_info_size(&self) -> u32
     {
         self.bi_size
     }
 
-    pub fn get_bit_count(&self) -> BitCount
+    pub fn get_bit_depth(&self) -> BitDepth
     {
-        match self.bi_bit_count {
-            1 => BitCount::BW,
-            4 => BitCount::Color16Bit,
-            8 => BitCount::Color256Bit,
-            24 => BitCount::AllColors,
-            32 => BitCount::AllColorsAndShades,
-            _ => BitCount::UNKNOWN,
+        match self.bi_bit_depth {
+            1 => BitDepth::BW,
+            4 => BitDepth::Color16Bit,
+            8 => BitDepth::Color256Bit,
+            24 => BitDepth::AllColors,
+            32 => BitDepth::AllColorsAndShades,
+            _ => BitDepth::UNKNOWN,
         }
     }
 
-    pub fn set_bit_count(&mut self, bit: BitCount)
+    pub fn set_bit_depth(&mut self, bit: BitDepth)
     {
-        self.bi_bit_count = bit as u16;
+        self.bi_bit_depth = bit as u16;
     }
 
     pub fn set_colors_used(&mut self, colors: u32)
@@ -176,7 +181,7 @@ impl std::fmt::Display for InfoHeader
             self.bi_size,
             self.bi_width,
             self.bi_height,
-            self.bi_bit_count,
+            self.bi_bit_depth,
             self.bi_planes,
             self.bi_compression,
             self.bi_size_image,

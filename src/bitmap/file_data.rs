@@ -1,9 +1,11 @@
 use super::rgb_quad::{RgbQuad};
 use super::file_header::FileHeader;
 use super::info_header::InfoHeader;
-use super::bit_count::BitCount;
+use super::bit_depth::BitDepth;
 use super::pixel_data::PixelData;
 use super::bit_data::BitData;
+use super::rgba::Rgba;
+use super::map::BitMap;
 
 pub trait ReadAndWrite<T> {
     fn stream(
@@ -15,11 +17,6 @@ pub trait ReadAndWrite<T> {
     fn as_bytes(&self) -> Vec<u8>;
 }
 
-pub trait Convert<T>
-{
-    fn convert(&self) -> Vec<T>;
-}
-
 pub enum FileData
 {
     Bits(BitData),
@@ -28,6 +25,11 @@ pub enum FileData
 
 impl FileData
 {
+    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> FileData
+    {
+        FileData::Pixels(PixelData::from_bitmap(bitmap, bit_depth))
+    }
+
     pub fn stream(
         bit_stream: &[u8],
         file: &FileHeader,
@@ -35,12 +37,12 @@ impl FileData
         colors: &RgbQuad
     ) -> Option<FileData>
     {
-        match info.get_bit_count()
+        match info.get_bit_depth()
         {
-            BitCount::BW =>
+            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit =>
                 Some(FileData::Bits(BitData::stream(bit_stream, file, info, colors))),
-            BitCount::AllColors =>
-                Some(FileData::Pixels(PixelData::stream(bit_stream, file, info, colors))),
+            BitDepth::AllColors | BitDepth::AllColorsAndShades =>
+                Some(FileData::Pixels(PixelData::stream(bit_stream, file, info))),
             _ => None,
         }
     }
@@ -72,19 +74,13 @@ impl FileData
         }   
     }
 
-    pub fn convert_pixels_to_bw(&mut self) -> FileData
+    pub fn as_rgba(&self) -> Vec<Rgba>
     {
-        FileData::Bits(BitData::convert(self.pixels()))
-    }
-
-    fn pixels(&mut self) -> &mut PixelData
-    {
-        if let FileData::Pixels(p) = self { p } else { panic!("Not Pixels") }
-    }
-
-    fn _bits(&mut self) -> &mut BitData
-    {
-        if let FileData::Bits(b) = self { b } else { panic!("Not Bytes") }
+        match self
+        {
+            FileData::Bits(b) => b.as_rgba(),
+            FileData::Pixels(p) => p.as_rgba(),
+        }
     }
 }
 
