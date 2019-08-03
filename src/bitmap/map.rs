@@ -66,7 +66,7 @@ impl BitMap
 
     pub fn save_as(&self, filename: &str) -> std::io::Result<()>
     {
-        let file = File::create(self, false);
+        let file = File::create(self);
         use std::io::Write;
         let mut bit_stream = unsafe { file.to_bytes() };
         let mut file = std::fs::File::create(filename)?;

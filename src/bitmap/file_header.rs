@@ -1,6 +1,6 @@
 use super::util;
-use super::info_header::InfoHeader;
-use super::rgb_quad::RgbQuad;
+// use super::info_header::InfoHeader;
+// use super::rgb_quad::RgbQuad;
 
 pub struct FileHeader
 {
@@ -76,21 +76,21 @@ impl FileHeader
         self.bf_size
     }
 
-    pub fn set_file_size(&mut self, size: u32)
-    {
-        self.bf_size = size;
-    }
+    // pub fn set_file_size(&mut self, size: u32)
+    // {
+    //     self.bf_size = size;
+    // }
 
     pub fn get_off_bits(&self) -> u32
     {
         self.bf_off_bits
     }
 
-    pub fn set_offset(&mut self, info: &InfoHeader, colors: &RgbQuad)
-    {
-        self.bf_off_bits = self.get_byte_size() + info.get_info_size()
-            + colors.get_bytes_size();
-    }
+    // pub fn set_offset(&mut self, info: &InfoHeader, colors: &RgbQuad)
+    // {
+    //     self.bf_off_bits = self.get_byte_size() + info.get_info_size()
+    //         + colors.get_bytes_size();
+    // }
 
 }
 

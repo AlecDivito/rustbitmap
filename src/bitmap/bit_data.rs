@@ -8,7 +8,7 @@ pub struct BitData
 {
     // stores colors key on each 6 bits of 8 available bits 
     width: u32,
-    height: u32,
+    // height: u32,
     colors: Vec<Rgba>,
     bytes: Vec<u8>,
     bit_depth: BitDepth,
@@ -95,7 +95,7 @@ impl BitData
         }
         BitData {
             width: info.get_width(),
-            height: info.get_height(),
+            // height: info.get_height(),
             bit_depth: info.get_bit_depth(),
             colors: colors.clone_colors(),
             bytes
@@ -191,14 +191,14 @@ impl BitData
         self.bytes.len() as u32
     }
 
-    pub fn get_bit_padding(&self) -> u32
-    {
-        match self.width * self.bit_depth.get_step_counter() % 8
-        {
-            0 => 0,
-            _ => 8 - (self.width % 8)
-        }
-    }
+    // pub fn get_bit_padding(&self) -> u32
+    // {
+    //     match self.width * self.bit_depth.get_step_counter() % 8
+    //     {
+    //         0 => 0,
+    //         _ => 8 - (self.width % 8)
+    //     }
+    // }
 }
 
 impl std::fmt::Display for BitData

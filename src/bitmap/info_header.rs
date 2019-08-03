@@ -137,15 +137,15 @@ impl InfoHeader
         }
     }
 
-    pub fn set_bit_depth(&mut self, bit: BitDepth)
-    {
-        self.bi_bit_depth = bit as u16;
-    }
+    // pub fn set_bit_depth(&mut self, bit: BitDepth)
+    // {
+    //     self.bi_bit_depth = bit as u16;
+    // }
 
-    pub fn set_colors_used(&mut self, colors: u32)
-    {
-        self.bi_clr_used = colors;
-    }
+    // pub fn set_colors_used(&mut self, colors: u32)
+    // {
+    //     self.bi_clr_used = colors;
+    // }
 
     pub fn get_width(&self) -> u32
     {
@@ -162,10 +162,10 @@ impl InfoHeader
         self.bi_clr_used
     }
 
-    pub fn set_image_size(&mut self, size: u32)
-    {
-        self.bi_size_image = size;
-    }
+    // pub fn set_image_size(&mut self, size: u32)
+    // {
+    //     self.bi_size_image = size;
+    // }
 }
 
 

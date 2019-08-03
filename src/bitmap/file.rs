@@ -31,8 +31,9 @@ impl File
         })
     }
 
-    pub fn create(bitmap: &BitMap, simplify: bool) -> File
+    pub fn create(bitmap: &BitMap) -> File
     {
+        // TODO: Figure out if we can simplify this
         let bit_depth = BitDepth::AllColors;
         let data = FileData::from_bitmap(bitmap, bit_depth);
         let colors = RgbQuad::empty();
@@ -89,15 +90,15 @@ impl File
         &self.info
     }
 
-    pub fn get_file_header(&self) -> &FileHeader
-    {
-        &self.file
-    }
+    // pub fn get_file_header(&self) -> &FileHeader
+    // {
+    //     &self.file
+    // }
 
-    pub fn get_colors(&self) -> &RgbQuad
-    {
-        &self.colors
-    }
+    // pub fn get_colors(&self) -> &RgbQuad
+    // {
+    //     &self.colors
+    // }
 
     pub fn get_pixels(&self) -> &FileData
     {

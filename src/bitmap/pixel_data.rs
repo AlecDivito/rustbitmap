@@ -10,7 +10,7 @@ pub struct PixelData
 {
     pixels: Vec<Rgba>,
     padding: u32,
-    width: u32,
+    // width: u32,
     height: u32,
     bit_depth: BitDepth,
 }
@@ -24,7 +24,7 @@ impl PixelData
         PixelData {
             pixels: bitmap.get_pixels().clone(),
             padding: PixelData::get_row_buffer_size(bitmap.get_width(), bit_depth),
-            width: bitmap.get_width(),
+            // width: bitmap.get_width(),
             height: bitmap.get_height(),
             bit_depth
         }
@@ -65,16 +65,16 @@ impl PixelData
         PixelData {
             pixels,
             padding,
-            width: info.get_width(),
+            // width: info.get_width(),
             height: info.get_height(),
             bit_depth: info.get_bit_depth()
         }
     }
 
-    pub fn get_width(&self) -> u32
-    {
-        self.width
-    }
+    // pub fn get_width(&self) -> u32
+    // {
+    //     self.width
+    // }
 
     pub fn _get_height(&self) -> u32
     {
