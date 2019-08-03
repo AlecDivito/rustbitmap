@@ -46,20 +46,6 @@ impl File
         }
     }
 
-    pub fn to_bitmap(&self) -> BitMap
-    {
-        BitMap::create(self.info.get_width(), self.info.get_height(), self.data.as_rgba())
-    }
-
-    pub fn save_as(&self, filename: &str) -> std::io::Result<()>
-    {
-        use std::io::Write;
-        let mut bit_stream = unsafe { self.to_bytes() };
-        let mut file = std::fs::File::create(filename)?;
-        file.write_all(bit_stream.as_mut_slice())?;
-        Ok(())
-    }
-
     // pub fn save_as(&mut self, filename: &str, simplify: bool)
     // {
 
@@ -97,6 +83,26 @@ impl File
     //     self.file.set_file_size(size);
     //     Ok(())
     // }
+
+    pub fn get_info_header(&self) -> &InfoHeader
+    {
+        &self.info
+    }
+
+    pub fn get_file_header(&self) -> &FileHeader
+    {
+        &self.file
+    }
+
+    pub fn get_colors(&self) -> &RgbQuad
+    {
+        &self.colors
+    }
+
+    pub fn get_pixels(&self) -> &FileData
+    {
+        &self.data
+    }
 }
 
 #[cfg(debug_assertions)]

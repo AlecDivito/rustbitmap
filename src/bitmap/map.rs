@@ -4,7 +4,7 @@ use super::rgba::Rgba;
 
 pub struct BitMap
 {
-    file: Option<String>,
+    filename: String,
     width: u32,
     height: u32,
     pixels: Vec<Rgba>
@@ -15,14 +15,18 @@ impl BitMap
     pub fn read(filename: &str) -> Option<BitMap>
     {
         let file = File::read(filename).unwrap();
-        println!("{}", file);
-        Some(file.to_bitmap())
+        Some(BitMap {
+            filename: String::from(filename),
+            width: file.get_info_header().get_width(),
+            height: file.get_info_header().get_height(),
+            pixels: file.get_pixels().as_rgba()
+        })
     }
 
     pub fn new(width: u32, height: u32) -> BitMap
     {
         BitMap {
-            file: None,
+            filename: String::default(),
             width,
             height,
             pixels: Vec::with_capacity((width * height) as usize)
@@ -33,7 +37,7 @@ impl BitMap
     {
         let pixels = vec![color; (width * height) as usize];
         BitMap {
-            file: None,
+            filename: String::default(),
             width,
             height,
             pixels
@@ -43,27 +47,17 @@ impl BitMap
     pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> BitMap
     {
         BitMap {
-            file: None,
+            filename: String::default(),
             width,
             height,
             pixels
         }
     }
 
-    // pub fn save(&self) -> std::io::Result<(), Error>
-    // {
-    //     use std::io::Write;
-    //     let filename = match self.file
-    //     {
-    //         Some(s) => s,
-    //         None => bail!("Can't save if not read from file")
-    //     };
-    //     let mut file = File::create(self);
-    //     let mut bit_stream = unsafe { file.to_bytes() };
-    //     let mut file = std::fs::File::create(filename)?;
-    //     file.write_all(bit_stream.as_mut_slice())?;
-    //     Ok(())
-    // }
+    pub fn save(&self) -> std::io::Result<()>
+    {
+        self.save_as(&self.filename)
+    }
 
     // pub fn simplify_and_save() -> std::io::Result<()>
     // {
@@ -73,8 +67,10 @@ impl BitMap
     pub fn save_as(&self, filename: &str) -> std::io::Result<()>
     {
         let file = File::create(self, false);
-        println!("{}", file);
-        file.save_as(filename).expect("uhm throwing error cause file reasons?");
+        use std::io::Write;
+        let mut bit_stream = unsafe { file.to_bytes() };
+        let mut file = std::fs::File::create(filename)?;
+        file.write_all(bit_stream.as_mut_slice())?;
         Ok(())
     }
 
@@ -96,5 +92,10 @@ impl BitMap
     pub fn get_height(&self) -> u32
     {
         self.height
+    }
+
+    pub fn get_filename(&self) -> &String
+    {
+        &self.filename
     }
 }

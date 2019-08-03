@@ -9,14 +9,24 @@ fn main() {
     // The read function should be able to read in any bitmap with any type of
     // bit count, HOWEVER, it should store everything as a 32 Bit Count bit map
     // when saving,
-    // let bitmap1 = BitMap::read("./test/w3c_home.bmp").unwrap();
-    // let bitmap2 = BitMap::read("./test/w3c_home_2.bmp").unwrap();
-    // let bitmap3 = BitMap::read("./test/w3c_home_gray.bmp").unwrap();
-    let bitmap4 = BitMap::read("./test/w3c_home_256.bmp").unwrap();
-    // bitmap1.save_as("./a/w3c_home.bmp").unwrap();
-    // bitmap2.save_as("./a/w3c_home_2.bmp").unwrap();
-    // bitmap3.save_as("./a/w3c_home_gray.bmp").unwrap();
-    bitmap4.save_as("./a/w3c_home_256.bmp").unwrap();
+    let bitmap1 = BitMap::read("./a/w3c_home.bmp").unwrap();
+    let bitmap2 = BitMap::read("./a/w3c_home_2.bmp").unwrap();
+    let bitmap3 = BitMap::read("./a/w3c_home_gray.bmp").unwrap();
+    let bitmap4 = BitMap::read("./a/w3c_home_256.bmp").unwrap();
+
+    bitmap1.save().unwrap();
+    bitmap2.save().unwrap();
+    bitmap3.save().unwrap();
+    bitmap4.save().unwrap();
+
+    bitmap1.save_as("./a/w3cc_home.bmp").unwrap();
+    bitmap2.save_as("./a/w3cc_home_2.bmp").unwrap();
+    bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
+    bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
+
+
+
+
 
     // - simplify flag will covert the bit_depth to its lowest possible value
     // bitmap.save(simplify: true | false);     // save the currently read in file
