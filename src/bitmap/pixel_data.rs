@@ -10,7 +10,7 @@ pub struct PixelData
 {
     pixels: Vec<Rgba>,
     padding: u32,
-    // width: u32,
+    width: u32,
     height: u32,
     bit_depth: BitDepth,
 }
@@ -24,7 +24,7 @@ impl PixelData
         PixelData {
             pixels: bitmap.get_pixels().clone(),
             padding: PixelData::get_row_buffer_size(bitmap.get_width(), bit_depth),
-            // width: bitmap.get_width(),
+            width: bitmap.get_width(),
             height: bitmap.get_height(),
             bit_depth
         }
@@ -65,7 +65,7 @@ impl PixelData
         PixelData {
             pixels,
             padding,
-            // width: info.get_width(),
+            width: info.get_width(),
             height: info.get_height(),
             bit_depth: info.get_bit_depth()
         }
@@ -84,14 +84,24 @@ impl PixelData
     pub fn as_bytes(&self) -> Vec<u8>
     {
         let mut bytes = Vec::new();
+        let mut counter = self.width;
         for p in &self.pixels
         {
+            // i need to watch the row count
             bytes.push(p.get_blue());
             bytes.push(p.get_green());
             bytes.push(p.get_red());
             if self.bit_depth == BitDepth::AllColorsAndShades
             {
                 bytes.push(p.get_alpha())
+            }
+            // after row has been written, pad the bytes to a number divisible by 4
+            counter = counter - 1;
+            if counter == 0 {
+                while bytes.len() % 4 != 0 {
+                    bytes.push(0);
+                }
+                counter = self.width;
             }
         }
         bytes
