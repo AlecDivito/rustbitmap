@@ -9,21 +9,32 @@ fn main() {
     // The read function should be able to read in any bitmap with any type of
     // bit count, HOWEVER, it should store everything as a 32 Bit Count bit map
     // when saving,
-    let bitmap1 = BitMap::read("./a/w3c_home.bmp").unwrap();
-    let bitmap2 = BitMap::read("./a/w3c_home_2.bmp").unwrap();
-    let bitmap3 = BitMap::read("./a/w3c_home_gray.bmp").unwrap();
-    let bitmap4 = BitMap::read("./a/w3c_home_256.bmp").unwrap();
+    let mut bitmap1 = BitMap::read("./a/w3c_home.bmp").unwrap();
+    let mut bitmap2 = BitMap::read("./a/w3c_home_2.bmp").unwrap();
+    let mut bitmap3 = BitMap::read("./a/w3c_home_gray.bmp").unwrap();
+    let mut bitmap4 = BitMap::read("./a/w3c_home_256.bmp").unwrap();
 
     bitmap1.save().unwrap();
     bitmap2.save().unwrap();
     bitmap3.save().unwrap();
     bitmap4.save().unwrap();
 
+    // resize will resize the image by a percentage
+    bitmap1.resize_by(4.0);
+    bitmap2.resize_by(0.25);
+    bitmap3.resize_to(50, 48);
+    bitmap3.resize_to(500, 50);
+    
     bitmap1.save_as("./a/w3cc_home.bmp").unwrap();
     bitmap2.save_as("./a/w3cc_home_2.bmp").unwrap();
     bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
     bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
 
+
+    // let mut bitmap = BitMap::read("./sqr_ex.bmp").unwrap();
+    // bitmap.resize_to(100, 100);
+    // // bitmap.resize_by(0.75);
+    // bitmap.save_as("./temp.bmp").unwrap();
 
 
 
@@ -35,9 +46,6 @@ fn main() {
 
     // part 2, resize files
 
-    // resize will resize the image by a percentage
-    // bitmap.resize_to(x: u32, y: u32)
-    // bitmap.resize_percentage(2.0)
 
     // part 3, build a bit map
 
