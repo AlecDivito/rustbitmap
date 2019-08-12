@@ -79,18 +79,6 @@ impl BitMap
 
     // }
 
-    pub fn resize_by(&mut self, factor: f32)
-    {
-        let width = (factor *  (self.width as f32)).round();
-        let height = (factor * (self.height as f32)).round();
-        self.resize(width as u32, height as u32);
-    }
-
-    pub fn resize_to(&mut self, width: u32, height: u32)
-    {
-        self.resize(width, height);
-    }
-
     pub fn get_pixels(&self) -> &Vec<Rgba>
     {
         &self.pixels
@@ -106,9 +94,39 @@ impl BitMap
         self.height
     }
 
+    pub fn get_size(&self) -> u32
+    {
+        self.width * self.height
+    }
+
     pub fn get_filename(&self) -> &String
     {
         &self.filename
+    }
+
+    /**
+     * Resize the current image by using nearest neighbor algorithm. Scale image
+     * to image size * the factor
+     * 
+     * @param {f32} scaling factor to apply to image
+     */
+    pub fn fast_resize_by(&mut self, factor: f32)
+    {
+        let width = (factor *  (self.width as f32)).round();
+        let height = (factor * (self.height as f32)).round();
+        self.fast_resize(width as u32, height as u32);
+    }
+
+    /**
+     * Resize the current image by using nearest neighbor algorithm. Scale image
+     * to specified width and height
+     * 
+     * @param {u32} new image width
+     * @param {u32} new image height
+     */
+    pub fn fast_resize_to(&mut self, width: u32, height: u32)
+    {
+        self.fast_resize(width, height);
     }
 
     /**
@@ -117,33 +135,126 @@ impl BitMap
      * @param {u32} new image width
      * @param {u32} new image height
      */
-    fn resize(&mut self, width: u32, height: u32)
+    fn fast_resize(&mut self, width: u32, height: u32)
     {
         // image 1 (currently loaded image)
-        let m1 = self.width as i32;
-        let n1 = self.height as i32;
-
         // image 2 (new image to be produced)
-        let m2 = width;
-        let n2 = height;
-        let new_area = m2 * n2;
+        let new_area = width * height;
         let mut i2: Vec<Rgba> = vec![Rgba::black(); new_area as usize];
 
-        let cy = (n2 as f32) / (n1 as f32); // Scale in x
-        let cx = (m2 as f32) / (m1 as f32); // Scale in y
+        let cy = (height as f32) / (self.height as f32); // Scale in y
+        let cx = (width as f32) / (self.width as f32); // Scale in x
     
         // write new image
-        for y in 0..n2
+        for y in 0..height
         {
-            for x in 0..m2
+            for x in 0..width
             {
                 // Calculate position in input image
                 // then just pick the nearest neighbor to (v, w)
-                let v = ((x as f32) / cx).floor() as i32; // x, w
-                let w = ((y as f32) / cy).floor() as i32; // y, h
-                let i1_index = ((w * m1) + v) as usize;
-                let i2_index = ((y * m2) + x) as usize;
+                let v = ((x as f32) / cx).floor() as u32; // x, w
+                let w = ((y as f32) / cy).floor() as u32; // y, h
+                let i1_index = ((w * self.width) + v) as usize;
+                let i2_index = ((y * width) + x) as usize;
                 i2[i2_index] = self.pixels[i1_index];
+            }
+        }
+
+        self.width = width;
+        self.height = height;
+        self.pixels = i2;
+    }
+
+    /**
+     * Resize the current image by using bilinear interpolation algorithm. Scale
+     * image to image size * the factor
+     * 
+     * @param {f32} scaling factor to apply to image
+     */
+    pub fn resize_by(&mut self, factor: f32)
+    {
+        let width = (factor *  (self.width as f32)).round();
+        let height = (factor * (self.height as f32)).round();
+        self.resize(width as u32, height as u32);
+    }
+
+    /**
+     * Resize the current image by using bilinear interpolation algorithm. Scale
+     * image to specified width and height
+     * 
+     * @param {u32} new image width
+     * @param {u32} new image height
+     */
+    pub fn resize_to(&mut self, width: u32, height: u32)
+    {
+        self.resize(width, height);
+    }
+
+    /**
+     * Resize the image by using a Bilinear interpolation algorithm
+     * 
+     * @param {u32} new image width
+     * @param {u32} new image height
+     */
+    fn resize(&mut self, width: u32, height: u32)
+    {
+        // image 1 (currently loaded image)
+        // image 2 (new image to be produced)
+        let new_area = width * height;
+        let mut i2: Vec<Rgba> = vec![Rgba::black(); new_area as usize];
+
+        let step_x = std::cmp::max(self.width - 1, 1) as f32 /  std::cmp::max(width - 1, 1) as f32;
+        let step_y = std::cmp::max(self.height - 1, 1) as f32 / std::cmp::max(height - 1, 1) as f32;
+
+        // write new image
+        for y in 0..height
+        {
+            for x in 0..width
+            {
+                // Calculate position in input image
+                // then just pick the nearest neighbor to (v, w)
+                let v = (x as f32) * step_x; // x of our next point
+                let w = (y as f32) * step_y; // y of our next point
+                let diff_x = v - v.floor();
+                let diff_x1 = 1.0 - diff_x;
+                let mut diff_y = w - w.floor();
+                let mut diff_y1 = 1.0 - diff_y;
+
+                let index = ((y * width) + x) as usize;
+                if index >= ((width - 1) * height) as usize
+                {
+                    let temp = diff_y1;
+                    diff_y1 = diff_y;
+                    diff_y = temp;
+                }
+
+
+                let index_1 = (((w * 0.999).floor() * self.width as f32) + v.floor()) as usize;
+                let mut index_2 = index_1 + 1;
+                let index_3 = index_1 + self.width as usize;
+                let mut index_4 = index_3 + 1;
+                if index_2 >= self.width as usize
+                {
+                    index_2 = index_1 - 1;
+                }
+                if index_4 >= self.get_size() as usize
+                {
+                    index_4 = index_3 - 1;
+                }
+
+                if index >= 56 {
+                    println!("stop");
+                }
+
+                print!("{} => ({} {} {} {}): ", index, index_1, index_2, index_3, index_4);
+
+                let top = Rgba::blur(&self.pixels[index_2], diff_x,
+                    &self.pixels[index_1], diff_x1);
+                let bottom = Rgba::blur(&self.pixels[index_4], diff_x,
+                    &self.pixels[index_3], diff_x1);
+                let color = Rgba::blur(&bottom, diff_y, &top, diff_y1);
+                println!("{}", color);
+                i2[index] = color;
             }
         }
 
@@ -157,7 +268,7 @@ impl std::fmt::Display for BitMap
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
-        write!(f, "width: {}, height: {}, pixels: {}, file: {}\n",
+        write!(f, "width: {}\t height: {}\t pixels: {}\t file: {}\n",
             self.width, self.height, self.pixels.len(), self.filename).unwrap();
         for c in &self.pixels
         {
