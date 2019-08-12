@@ -217,43 +217,36 @@ impl BitMap
                 let w = (y as f32) * step_y; // y of our next point
                 let diff_x = v - v.floor();
                 let diff_x1 = 1.0 - diff_x;
-                let mut diff_y = w - w.floor();
-                let mut diff_y1 = 1.0 - diff_y;
+                let diff_y = w - w.floor();
+                let diff_y1 = 1.0 - diff_y;
 
                 let index = ((y * width) + x) as usize;
-                if index >= ((width - 1) * height) as usize
-                {
-                    let temp = diff_y1;
-                    diff_y1 = diff_y;
-                    diff_y = temp;
-                }
 
-
-                let index_1 = (((w * 0.999).floor() * self.width as f32) + v.floor()) as usize;
+                let index_1 = ((w.floor() * self.width as f32) + v.floor()) as usize;
                 let mut index_2 = index_1 + 1;
-                let index_3 = index_1 + self.width as usize;
+                let mut index_3 = index_1 + self.width as usize;
                 let mut index_4 = index_3 + 1;
-                if index_2 >= self.width as usize
+                if index_2 >= self.get_size() as usize
                 {
-                    index_2 = index_1 - 1;
+                    index_2 = index_1;
+                }
+                if index_3 >= self.get_size() as usize
+                {
+                    index_3 = index_1;
                 }
                 if index_4 >= self.get_size() as usize
                 {
-                    index_4 = index_3 - 1;
+                    index_4 = index_2;
                 }
 
-                if index >= 56 {
-                    println!("stop");
-                }
-
-                print!("{} => ({} {} {} {}): ", index, index_1, index_2, index_3, index_4);
+                // print!("{} => ({} {} {} {}): ", index, index_1, index_2, index_3, index_4);
 
                 let top = Rgba::blur(&self.pixels[index_2], diff_x,
                     &self.pixels[index_1], diff_x1);
                 let bottom = Rgba::blur(&self.pixels[index_4], diff_x,
                     &self.pixels[index_3], diff_x1);
                 let color = Rgba::blur(&bottom, diff_y, &top, diff_y1);
-                println!("{}", color);
+                // println!("{}", color);
                 i2[index] = color;
             }
         }
