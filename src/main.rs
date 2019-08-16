@@ -31,7 +31,6 @@ fn main() {
     // bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
     // bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
 
-
     let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.resize_to(100, 100);
     // bitmap.resize_by(10.0);
@@ -41,6 +40,8 @@ fn main() {
             bitmap.set_pixel(x, y, Rgba::rgb(255, 255, 255)).unwrap();
         }
     }
+    let new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
+    new_bits.save_as("./temp1.bmp").unwrap();
     bitmap.save_as("./temp.bmp").unwrap();
 
 
@@ -56,11 +57,8 @@ fn main() {
     // let bits = BitMap::new(width: u32, height: u32)
     // let bits = BitMap::new_colored(width: u32, height: u32, BitMap::Rgba)
 
-    // bits.set_pixel(x: u32, y: u32, BitMap::Rgba)
-    // bits.set_pixel_by_index(i: u32, BitMap::Rgba)
     // bits.copy_and_paste(x: u32, y: u32, &BitMap::File)
     // bits.copy_and_paste_sub_group(x: u32, y: u32, &BitMap::File, start_at_x: u32, end_at_x: u32, start_at_y: u32, end_at_y: u32)
-    // let bits_cropped: BitMap::File = bits.crop(start_at_x: u32, end_at_x: u32, start_at_y: u32, end_at_y: u32)
     // bits.replace_color(replace: BitMap::Rgba, with: BitMap::Rgba)
     // bits.replace_color_in_region(replace: BitMap::Rgba, with: BitMap::Rgba, at: BitMap::Region)
     // bits.rotate_left()

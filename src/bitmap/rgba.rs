@@ -10,6 +10,16 @@ pub struct Rgba
 
 impl Rgba
 {
+    pub fn white() -> Rgba
+    {
+        Rgba {
+            red: 255,
+            green: 255,
+            blue: 255,
+            alpha: 100
+        }
+    }
+
     pub fn black() -> Rgba
     {
         Rgba {

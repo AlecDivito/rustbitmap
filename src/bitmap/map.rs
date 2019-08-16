@@ -25,22 +25,12 @@ impl BitMap
 
     pub fn new(width: u32, height: u32) -> BitMap
     {
+        let white = Rgba::white();
         BitMap {
             filename: String::default(),
             width,
             height,
-            pixels: Vec::with_capacity((width * height) as usize)
-        }
-    }
-
-    pub fn new_colored(width: u32, height: u32, color: Rgba) -> BitMap
-    {
-        let pixels = vec![color; (width * height) as usize];
-        BitMap {
-            filename: String::default(),
-            width,
-            height,
-            pixels
+            pixels: vec![white; (width * height) as usize]
         }
     }
 
@@ -104,6 +94,49 @@ impl BitMap
         &self.filename
     }
 
+    fn get_index(&self, x: u32, y: u32) -> usize
+    {
+        (((self.height - y - 1) * self.width) + x) as usize
+    }
+}
+
+/**
+ * This block deals with creating a new bitmap from an existing one and manipulating
+ * bit maps using other bitmaps
+ */
+impl BitMap {
+    pub fn crop(&self, from_x: u32, from_y: u32, to_x: u32, to_y: u32) -> Result<BitMap, &'static str>
+    {
+        if from_x > to_x {
+            return Err("From x must be less then to x.");
+        }
+        let width = to_x - from_x;
+
+        if from_y > to_y {
+            return Err("From y must be less then to y.");
+        }
+        let height = to_y - from_y;
+
+        let area = width * height;
+        if area == 0
+        {
+            return Ok(BitMap::new(0, 0));
+        }
+
+        if to_x > self.width || to_y > self.height {
+            return Err("cropped image exceeds the bounds of the current image.");
+        }
+
+        let mut colors = Vec::with_capacity(area as usize);
+        for x in from_x..to_x {
+            for y in from_y..to_y {
+                let index = self.get_index(x, y);
+                colors.push(self.pixels[index]);
+            }
+        }
+        colors.reverse();
+        Ok(BitMap::create(width, height, colors))
+    }
 }
 
 /**
@@ -113,13 +146,13 @@ impl BitMap {
 
     pub fn set_pixel(&mut self, x: u32, y: u32, color: Rgba) -> Result<(), &'static str>
     {
-        if y > self.height
+        if y > self.height || x > self.width
         {
             return Err("Pixel is not contained inside of the image.");
         }
         // images are saved upside down, so to get the pixel we flip it right side up
-        let index = ((self.height - y - 1) * self.width) + x;
-        if index > (self.get_size() - 1)
+        let index = self.get_index(x, y);
+        if index > (self.pixels.len() - 1)
         {
             return Err("Pixel is not contained inside of the image.");
         }
