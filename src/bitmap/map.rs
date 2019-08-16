@@ -44,16 +44,19 @@ impl BitMap
         }
     }
 
+    /**
+     * Save the image to its original location
+     * 
+     * Fail if no original location is linked to the current bitmap
+     */
     pub fn save(&self) -> std::io::Result<()>
     {
         self.save_as(&self.filename)
     }
 
-    // pub fn simplify_and_save() -> std::io::Result<()>
-    // {
-
-    // }
-
+    /**
+     * Save the image to a new location on disk
+     */
     pub fn save_as(&self, filename: &str) -> std::io::Result<()>
     {
         let file = File::create(self);
@@ -63,6 +66,23 @@ impl BitMap
         file.write_all(bit_stream.as_mut_slice())?;
         Ok(())
     }
+
+    /**
+     * Analyze the currently recorded pixels and try and find the lowest bit
+     * count possible to save the images at.
+     * 
+     * The bitcount will be:
+     * if there are at most 2 colors present, 2 bit
+     * if there are at most 16 colors present, 4 bit
+     * if there are at most 256 colors present, 8 bit
+     * if there are more then 256 colors and all alphas are 100, 24 bit
+     * if there are more then 256 colors and at least one alpha is not 100, 32 bit
+     * 
+     */
+    // pub fn simplify_and_save() -> std::io::Result<()>
+    // {
+
+    // }
 
     // pub fn simplify_and_save_as() -> std::io::Result<()>
     // {
@@ -107,12 +127,14 @@ impl BitMap
 impl BitMap {
     pub fn crop(&self, from_x: u32, from_y: u32, to_x: u32, to_y: u32) -> Result<BitMap, &'static str>
     {
-        if from_x > to_x {
+        if from_x > to_x
+        {
             return Err("From x must be less then to x.");
         }
         let width = to_x - from_x;
 
-        if from_y > to_y {
+        if from_y > to_y
+        {
             return Err("From y must be less then to y.");
         }
         let height = to_y - from_y;
@@ -123,19 +145,49 @@ impl BitMap {
             return Ok(BitMap::new(0, 0));
         }
 
-        if to_x > self.width || to_y > self.height {
+        if to_x > self.width || to_y > self.height
+        {
             return Err("cropped image exceeds the bounds of the current image.");
         }
 
-        let mut colors = Vec::with_capacity(area as usize);
-        for x in from_x..to_x {
-            for y in from_y..to_y {
+        let mut colors = vec![Rgba::white(); area as usize];
+        for y in from_y..to_y {
+            for x in from_x..to_x {
                 let index = self.get_index(x, y);
-                colors.push(self.pixels[index]);
+                let colors_index = (((height - y - from_y - 1) * width) + x - from_x) as usize;
+                colors[colors_index] = self.pixels[index];
             }
         }
-        colors.reverse();
+
+        // colors.reverse();
         Ok(BitMap::create(width, height, colors))
+    }
+
+    pub fn paste(&mut self, bitmap: &BitMap, start_at_x: u32, start_at_y: u32) -> Result<(), &'static str>
+    {
+        if start_at_x > self.width || start_at_y > self.height
+        {
+            return Err("Starting position is outside of the image.");
+        }
+
+        let end_at_x = start_at_x + bitmap.get_width();
+        let end_at_y = start_at_y + bitmap.get_height(); 
+        if end_at_x > self.width || end_at_y > self.height
+        {
+            return Err("Bitmap being pasted doesn't fit inside image.");
+        }
+
+        for x in start_at_x..end_at_x
+        {
+            for y in start_at_y..end_at_y
+            {
+                let bitmap_index = bitmap.get_index(x - start_at_x, y - start_at_y);
+                let self_index = self.get_index(x, y);
+                self.pixels[self_index] = bitmap.get_pixels()[bitmap_index];
+            }
+        }
+
+        Ok(())
     }
 }
 

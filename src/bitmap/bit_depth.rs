@@ -19,14 +19,14 @@ impl BitDepth
      */
     pub fn get_step_counter(&self) -> u32
     {
-        match *self
+        match self
         {
-            BitDepth::UNKNOWN => 0,
-            BitDepth::BW => 1,
-            BitDepth::Color16Bit => 4,
-            BitDepth::Color256Bit => 8,
-            BitDepth::AllColors => 3,
-            BitDepth::AllColorsAndShades => 4,
+            Self::UNKNOWN => 0,
+            Self::BW => 1,
+            Self::Color16Bit => 4,
+            Self::Color256Bit => 8,
+            Self::AllColors => 3,
+            Self::AllColorsAndShades => 4,
         }
     }
 }

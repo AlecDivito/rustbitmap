@@ -34,22 +34,19 @@ fn main() {
     let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.resize_to(100, 100);
     // bitmap.resize_by(10.0);
+    let new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
+
     bitmap.color_to_gray();
     for x in 0..100 {
         for y in 0..100 {
             bitmap.set_pixel(x, y, Rgba::rgb(255, 255, 255)).unwrap();
         }
     }
-    let new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
     new_bits.save_as("./temp1.bmp").unwrap();
+    bitmap.paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0).unwrap();
     bitmap.save_as("./temp.bmp").unwrap();
 
 
-
-    // - simplify flag will covert the bit_depth to its lowest possible value
-    // bitmap.save(simplify: true | false);     // save the currently read in file
-    // - save the current read in file to new bitmap
-    // bitmap.save_as("path/to/new/bitmap.bmp", simplify: true | false)
 
 
     // part 3, build a bit map
