@@ -1,6 +1,7 @@
 extern crate rustybitmap;
 
 use rustybitmap::bitmap::map::BitMap;
+use rustybitmap::bitmap::rgba::Rgba;
 
 fn main() {
     // part 1, read and write files
@@ -35,6 +36,11 @@ fn main() {
     // bitmap.resize_to(100, 100);
     // bitmap.resize_by(10.0);
     bitmap.color_to_gray();
+    for x in 0..100 {
+        for y in 0..100 {
+            bitmap.set_pixel(x, y, Rgba::rgb(255, 255, 255)).unwrap();
+        }
+    }
     bitmap.save_as("./temp.bmp").unwrap();
 
 
@@ -43,8 +49,6 @@ fn main() {
     // bitmap.save(simplify: true | false);     // save the currently read in file
     // - save the current read in file to new bitmap
     // bitmap.save_as("path/to/new/bitmap.bmp", simplify: true | false)
-
-    // part 2, resize files
 
 
     // part 3, build a bit map

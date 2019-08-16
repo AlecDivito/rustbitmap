@@ -107,10 +107,26 @@ impl BitMap
 }
 
 /**
- * This implementation block deals with only converting a colored image to
- * gray scale
+ * This implementation block deals with coloring the image
  */
 impl BitMap {
+
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: Rgba) -> Result<(), &'static str>
+    {
+        if y > self.height
+        {
+            return Err("Pixel is not contained inside of the image.");
+        }
+        // images are saved upside down, so to get the pixel we flip it right side up
+        let index = ((self.height - y - 1) * self.width) + x;
+        if index > (self.get_size() - 1)
+        {
+            return Err("Pixel is not contained inside of the image.");
+        }
+
+        self.pixels[index as usize] = color;
+        Ok(())
+    }
 
     /**
      * Convert image from a colored image to gray
