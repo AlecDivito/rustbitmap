@@ -87,6 +87,30 @@ impl Rgba
     {
         self.alpha
     }
+}
+
+/**
+ * Methods used to manipulate the rgba color in a certain way
+ */
+impl Rgba {
+    /**
+     * Convert pixel color to gray scale
+     */
+    pub fn color_to_gray(&mut self)
+    {
+        let red_gray = self.red as f32 * 0.2126;
+        let green_gray = self.green as f32 * 0.7152; 
+        let blue_gray = self.blue as f32 * 0.0722;
+        let pixel_gray = (red_gray + green_gray + blue_gray).round() as u8;
+        self.set_gray_scale_pixel(pixel_gray);
+    }
+
+    fn set_gray_scale_pixel(&mut self, gray: u8)
+    {
+        self.red = gray;
+        self.green = gray;
+        self.blue = gray;
+    }
 
     /**
      * Blur 2 color's together

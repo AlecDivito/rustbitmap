@@ -31,11 +31,11 @@ fn main() {
     // bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
 
 
-    let mut bitmap = BitMap::read("./sm_ex_rs.bmp").unwrap();
+    let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.resize_to(100, 100);
-    bitmap.resize_by(127.5);
+    // bitmap.resize_by(10.0);
+    bitmap.color_to_gray();
     bitmap.save_as("./temp.bmp").unwrap();
-
 
 
 

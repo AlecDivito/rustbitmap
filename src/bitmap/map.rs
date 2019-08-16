@@ -104,6 +104,32 @@ impl BitMap
         &self.filename
     }
 
+}
+
+/**
+ * This implementation block deals with only converting a colored image to
+ * gray scale
+ */
+impl BitMap {
+
+    /**
+     * Convert image from a colored image to gray
+     */
+    pub fn color_to_gray(&mut self)
+    {
+        for c in &mut self.pixels
+        {
+            c.color_to_gray();
+        }
+    }
+}
+
+/**
+ * This implementation block is only meant for resizing images using one of the 
+ * 3 (so far only 2 implemented) algorithms (nearest neighbor, bilinear, bicubic)
+ */
+impl BitMap {
+
     /**
      * Resize the current image by using nearest neighbor algorithm. Scale image
      * to image size * the factor
@@ -239,14 +265,11 @@ impl BitMap
                     index_4 = index_2;
                 }
 
-                // print!("{} => ({} {} {} {}): ", index, index_1, index_2, index_3, index_4);
-
                 let top = Rgba::blur(&self.pixels[index_2], diff_x,
                     &self.pixels[index_1], diff_x1);
                 let bottom = Rgba::blur(&self.pixels[index_4], diff_x,
                     &self.pixels[index_3], diff_x1);
                 let color = Rgba::blur(&bottom, diff_y, &top, diff_y1);
-                // println!("{}", color);
                 i2[index] = color;
             }
         }
