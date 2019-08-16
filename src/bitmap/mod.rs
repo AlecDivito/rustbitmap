@@ -7,5 +7,5 @@ mod rgb_quad;
 mod file_data;
 mod bit_depth;
 mod file;
-pub mod map;
+pub mod image;
 pub mod rgba;

@@ -5,7 +5,8 @@ use super::bit_depth::BitDepth;
 use super::pixel_data::PixelData;
 use super::bit_data::BitData;
 use super::rgba::Rgba;
-use super::map::BitMap;
+use super::image::BitMap;
+
 
 pub trait ReadAndWrite<T> {
     fn stream(

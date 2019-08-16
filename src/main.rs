@@ -1,6 +1,6 @@
 extern crate rustybitmap;
 
-use rustybitmap::bitmap::map::BitMap;
+use rustybitmap::bitmap::image::BitMap;
 use rustybitmap::bitmap::rgba::Rgba;
 
 fn main() {
@@ -45,15 +45,18 @@ fn main() {
         }
     }
     new_bits.replace_all_color(Rgba::white(), Rgba::black());
-    new_bits.save_as("./temp1.bmp").unwrap();
     new_bits.fill_region(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
+    new_bits.save_as("./temp1.bmp").unwrap();
     bitmap.paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0).unwrap();
     bitmap.save_as("./temp.bmp").unwrap();
 
 
 
-
-    // part 3, build a bit map
+    // Possibilities to add
+    // simplify_and_save()
+    // simplify_and_save_as()
+    // slow_resize_to() // bicubic
+    // slow_resize_by() // bicubic
     // bits.rotate_left()
     // bits.rotate_right()
 }

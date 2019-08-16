@@ -1,7 +1,7 @@
 use super::util;
 use super::bit_depth::BitDepth;
 
-use super::map::BitMap;
+use super::image::BitMap;
 
 pub struct InfoHeader
 {

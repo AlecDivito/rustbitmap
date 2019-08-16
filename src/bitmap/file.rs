@@ -3,7 +3,7 @@ use super::file_header::FileHeader;
 use super::info_header::InfoHeader;
 use super::file_data::FileData;
 use super::bit_depth::BitDepth;
-use super::map::BitMap;
+use super::image::BitMap;
 
 pub struct File
 {

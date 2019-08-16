@@ -486,10 +486,6 @@ impl BitMap {
     }
 }
 
-/**
- * This block is meant for rotating the images left or right
- */
-
 impl std::fmt::Display for BitMap
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
