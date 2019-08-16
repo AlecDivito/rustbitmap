@@ -125,6 +125,19 @@ impl BitMap
  * bit maps using other bitmaps
  */
 impl BitMap {
+
+    /**
+     * Crop a given area of the current image
+     * 
+     * @param {u32} starting x position
+     * @param {u32} starting y position
+     * @param {u32} ending x position
+     * @param {u32} ending y position
+     * 
+     * @exception {&'static str} error message
+     * if the starting x and ending x or starting y and ending y is out of the
+     * image with height or width, throw an error
+     */
     pub fn crop(&self, from_x: u32, from_y: u32, to_x: u32, to_y: u32) -> Result<BitMap, &'static str>
     {
         if from_x > to_x
@@ -196,6 +209,13 @@ impl BitMap {
  */
 impl BitMap {
 
+    /**
+     * Set the color of a pixel
+     * 
+     * @param {u32} x position
+     * @param {u32} y position
+     * @param {Rgba} color to set pixel
+     */
     pub fn set_pixel(&mut self, x: u32, y: u32, color: Rgba) -> Result<(), &'static str>
     {
         if y > self.height || x > self.width
@@ -222,6 +242,91 @@ impl BitMap {
         {
             c.color_to_gray();
         }
+    }
+
+    /**
+     * Find all the pixels that are the same as the from color and convert them
+     * all to the "to" color.
+     * 
+     * @param {Rgba} from color
+     * @param {Rgba} to color
+     */
+    pub fn replace_all_color(&mut self, from: Rgba, to: Rgba)
+    {
+        for c in &mut self.pixels
+        {
+            if c == &from
+            {
+                c.recolor_to(&to);
+            }
+        }
+    }
+
+    /**
+     * Fill a region of an image with a color. The only colors that get changed
+     * are those that are the same as the pixel found at the given x and y value
+     * 
+     * @param {u32} x position
+     * @param {u32} y position
+     * @param {Rgba} color to use to replace the other color
+     */
+    pub fn fill_region(&mut self, x: u32, y: u32, color: Rgba) -> Result<(), &'static str>
+    {
+        if y > self.height || x > self.width
+        {
+            return Err("Pixel is not contained inside of the image.");
+        }
+        // images are saved upside down, so to get the pixel we flip it right side up
+        let starting_index = self.get_index(x, y);
+        if starting_index > (self.pixels.len() - 1)
+        {
+            return Err("Pixel is not contained inside of the image.");
+        }
+
+        let width = self.width as usize;
+        let old_color = self.pixels[starting_index];
+        let mut visited = Vec::new();
+        let mut unvisited = vec![starting_index];
+        while unvisited.len() > 0
+        {
+            let index = unvisited.pop().unwrap();
+            if old_color == self.pixels[index]
+            {
+                self.pixels[index] = color;
+                visited.push(index);
+            }
+            else
+            {
+                continue;
+            }
+
+            // check the pixel above
+            if index > width && !visited.contains(&(index - width))
+            {
+                unvisited.push(index - width);
+            }
+            // check the bottom pixel
+            let bottom_pixel = index + width;
+            if bottom_pixel < self.pixels.len() && !visited.contains(&bottom_pixel)
+            {
+                unvisited.push(bottom_pixel);
+            }
+
+            let index_in_image = index < self.pixels.len() && index > 0;
+            // check the pixel to the right
+            let right_pixel = index + 1;
+            if index_in_image && index - 1 % width != 0 && !visited.contains(&right_pixel)
+            {
+                unvisited.push(right_pixel);
+            }
+            // check the pixel to the left
+            if index_in_image && index % width != 0 && !visited.contains(&(index - 1))
+            {
+                unvisited.push(index - 1);
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -380,6 +485,10 @@ impl BitMap {
         self.pixels = i2;
     }
 }
+
+/**
+ * This block is meant for rotating the images left or right
+ */
 
 impl std::fmt::Display for BitMap
 {

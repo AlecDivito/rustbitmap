@@ -34,7 +34,9 @@ fn main() {
     let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.resize_to(100, 100);
     // bitmap.resize_by(10.0);
-    let new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
+    let mut new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
+    let bits = BitMap::new(50, 50);
+    new_bits.paste(&bits, 0, 0).unwrap();
 
     bitmap.color_to_gray();
     for x in 0..100 {
@@ -42,7 +44,9 @@ fn main() {
             bitmap.set_pixel(x, y, Rgba::rgb(255, 255, 255)).unwrap();
         }
     }
+    new_bits.replace_all_color(Rgba::white(), Rgba::black());
     new_bits.save_as("./temp1.bmp").unwrap();
+    new_bits.fill_region(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
     bitmap.paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0).unwrap();
     bitmap.save_as("./temp.bmp").unwrap();
 
@@ -50,25 +54,6 @@ fn main() {
 
 
     // part 3, build a bit map
-
-    // let bits = BitMap::new(width: u32, height: u32)
-    // let bits = BitMap::new_colored(width: u32, height: u32, BitMap::Rgba)
-
-    // bits.copy_and_paste(x: u32, y: u32, &BitMap::File)
-    // bits.copy_and_paste_sub_group(x: u32, y: u32, &BitMap::File, start_at_x: u32, end_at_x: u32, start_at_y: u32, end_at_y: u32)
-    // bits.replace_color(replace: BitMap::Rgba, with: BitMap::Rgba)
-    // bits.replace_color_in_region(replace: BitMap::Rgba, with: BitMap::Rgba, at: BitMap::Region)
     // bits.rotate_left()
     // bits.rotate_right()
-
-    // pub struct Region {
-    //     x: u32
-    //     y: u32
-    //     width: u32
-    //     height: u32
-    // }
-
-    // part 4, I don't know how much I want to expose the BitDepth
-
-    // bits.blend_to(BitDepth::BW)
 }
