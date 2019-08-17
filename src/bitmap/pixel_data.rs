@@ -18,6 +18,9 @@ pub struct PixelData
 impl PixelData
 {
 
+    ///
+    /// Convert a bitmap image into pixel data
+    /// 
     pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> PixelData
     {
         // TODO: Stop assuming that this is all colors
@@ -30,16 +33,22 @@ impl PixelData
         }
     }
 
+    ///
+    /// 
+    /// 
     pub fn stream(
         bit_stream: &[u8],
         file: &FileHeader,
-        info: &InfoHeader
+        info: &InfoHeader,
+        bit_depth: BitDepth
     ) -> PixelData
     {
+        // check the bit_stream length and compare it to how big the file is
+        // supposed to be
         let mut pixels: Vec<Rgba> = Vec::new();
         let offset = file.get_off_bits();
-        let padding = PixelData::get_row_buffer_size(info.get_width(), info.get_bit_depth());
-        let step = info.get_bit_depth().get_step_counter();
+        let padding = PixelData::get_row_buffer_size(info.get_width(), bit_depth);
+        let step = bit_depth.get_step_counter();
         let mut counter = 0;
 
         for _ in 0..info.get_height()
@@ -49,7 +58,7 @@ impl PixelData
                 // TODO: check if the number of bytes needed exists
                 //       If they don't, throw error
                 let i = (offset + counter) as usize;
-                let pixel = match info.get_bit_depth()
+                let pixel = match bit_depth
                 {
                     BitDepth::AllColors =>
                         Rgba::bgr(bit_stream[i], bit_stream[i + 1], bit_stream[i + 2]),
@@ -67,20 +76,17 @@ impl PixelData
             padding,
             width: info.get_width(),
             height: info.get_height(),
-            bit_depth: info.get_bit_depth()
+            bit_depth
         }
     }
 
-    // pub fn get_width(&self) -> u32
-    // {
-    //     self.width
-    // }
-
-    pub fn _get_height(&self) -> u32
-    {
-        self.height
-    }
-
+    ///
+    /// Convert the list of colors into a list of bytes
+    /// 
+    /// The bytes in the list need to go one after another in a certain form.
+    /// That form being blue, green, and red as well as alpha IF the bit depth
+    /// is 32
+    /// 
     pub fn as_bytes(&self) -> Vec<u8>
     {
         let mut bytes = Vec::new();
@@ -107,11 +113,17 @@ impl PixelData
         bytes
     }
 
+    ///
+    /// Get number of pixels in image
+    /// 
     pub fn len(&self) -> usize
     {
         self.pixels.len()
     }
 
+    ///
+    /// Get the number of bytes that pixel data would occupy if saved
+    /// 
     pub fn get_bytes_size(&self) -> u32
     {
         let used_bits = self.pixels.len() as u32 * self.bit_depth.get_step_counter();
@@ -119,11 +131,18 @@ impl PixelData
         used_bits + padding
     }
 
+    ///
+    /// Convert data to RGBA
+    /// 
     pub fn as_rgba(&self) -> Vec<Rgba>
     {
         self.pixels.clone()
     }
 
+    ///
+    /// get the buffer byte size needed to add to each row to be able to be
+    /// read from other bitmap applications
+    /// 
     fn get_row_buffer_size(width: u32, bit_depth: BitDepth) -> u32
     {
         match bit_depth 

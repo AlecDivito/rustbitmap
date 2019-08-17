@@ -7,17 +7,6 @@ use super::bit_data::BitData;
 use super::rgba::Rgba;
 use super::image::BitMap;
 
-
-pub trait ReadAndWrite<T> {
-    fn stream(
-        bit_stream: &[u8],
-        file: &FileHeader,
-        info: &InfoHeader,
-        colors: &RgbQuad
-    ) -> T;
-    fn as_bytes(&self) -> Vec<u8>;
-}
-
 pub enum FileData
 {
     Bits(BitData),
@@ -38,16 +27,23 @@ impl FileData
         colors: &RgbQuad
     ) -> Option<FileData>
     {
+
         match info.get_bit_depth()
         {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit =>
-                Some(FileData::Bits(BitData::stream(bit_stream, file, info, colors))),
-            BitDepth::AllColors | BitDepth::AllColorsAndShades =>
-                Some(FileData::Pixels(PixelData::stream(bit_stream, file, info))),
-            _ => None,
+            Some(b) => match b
+            {
+                BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit =>
+                    Some(FileData::Bits(BitData::stream(bit_stream, file, info, b, colors))),
+                BitDepth::AllColors | BitDepth::AllColorsAndShades =>
+                    Some(FileData::Pixels(PixelData::stream(bit_stream, file, info, b))),
+            }
+            None => None,
         }
     }
 
+    ///
+    /// Get then length of the lists of colors
+    /// 
     pub fn len(&self) -> usize
     {
         match self
@@ -57,6 +53,9 @@ impl FileData
         }
     }
 
+    ///
+    /// get the size of the list of colors if they were to be convert
+    /// 
     pub fn get_bytes_size(&self) -> u32
     {
         match self
@@ -66,6 +65,9 @@ impl FileData
         }
     }
 
+    ///
+    /// convert the list of colors to bytes
+    /// 
     pub fn as_bytes(&self) -> Vec<u8>
     {
         match self
@@ -75,6 +77,9 @@ impl FileData
         }   
     }
 
+    ///
+    /// convert the list of colors to RGBA
+    /// 
     pub fn as_rgba(&self) -> Vec<Rgba>
     {
         match self

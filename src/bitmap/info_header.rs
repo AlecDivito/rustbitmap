@@ -5,167 +5,160 @@ use super::image::BitMap;
 
 pub struct InfoHeader
 {
-    // specifies the size of the BitMapFileHeader structure, in bytes
-    bi_size: u32,
-    // specifies the width of the image, in pixels
-    bi_width: u32,
-    // specifies the height of the image, in pixels
-    bi_height: u32,
-    // specifies the number of planes of the target device, must be set to zero
-    bi_planes: u16,
-    // specifies the number of bits per pixel
-    // possible values are as follows:
-    //  - 1 (black / white)
-    //  - 4 (16 colors)
-    //  - 8 (256 colors)
-    //  - 24 (16.7 million colors)
-    bi_bit_depth: u16,
-    // specifies the type of compression, usually set to zero (no compression)
-    bi_compression: u32,
-    // specifies the size of the image data, in bytes. If there is no
-    // compression, it is valid to set this member to zero
-    bi_size_image: u32,
-    // specifies the the horizontal pixels per meter on the designated target
+    /// specifies the size of the BitMapFileHeader structure, in bytes
+    size: u32,
+    /// specifies the width of the image, in pixels
+    width: u32,
+    /// specifies the height of the image, in pixels
+    height: u32,
+    /// specifies the number of planes of the target device, must be set to zero
+    planes: u16,
+    /// specifies the number of bits per pixel
+    /// possible values are as follows:
+    ///  - 1 (black / white)
+    ///  - 4 (16 colors)
+    ///  - 8 (256 colors)
+    ///  - 24 (16.7 million colors)
+    bit_depth: u16,
+    /// specifies the type of compression, usually set to zero (no compression)
+    compression: u32,
+    /// specifies the size of the image data, in bytes. If there is no
+    /// compression, it is valid to set this member to zero
+    size_image: u32,
+    /// specifies the the horizontal pixels per meter on the designated target
     /// device, usually set to zero.
-    bi_x_pxls_per_meter: u32,
-    // specifies the vertical pixels per meter on the designated target device,
-    // usually set to zero
-    bi_y_pxls_per_meter: u32,
-    // specifies the number of colors used in the bitmap, if set to zero the
-    // number of colors is calculated using the biBitDepth member.
-    bi_clr_used: u32,
-    // specifies the number of color that are 'important' for the bitmap, if set
-    // to zero, all colors are important
-    bi_clr_important: u32,
+    x_pixels_per_meter: u32,
+    /// specifies the vertical pixels per meter on the designated target device,
+    /// usually set to zero
+    y_pixels_per_meter: u32,
+    /// specifies the number of colors used in the bitmap, if set to zero the
+    /// number of colors is calculated using the biBitDepth member.
+    colors_used: u32,
+    /// specifies the number of color that are 'important' for the bitmap, if set
+    /// to zero, all colors are important
+    colors_important: u32,
 }
 
 impl InfoHeader
 {
+    ///
+    /// Create a header based on a bitmap.
+    /// 
     pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader
     {
         InfoHeader {
-            bi_size: 40,
-            bi_width: bitmap.get_width(),
-            bi_height: bitmap.get_height(),
-            bi_bit_depth: bit_depth as u16,
-            bi_planes: 1,
-            bi_compression: 0,
-            bi_size_image: 0,
-            bi_x_pxls_per_meter: 0,
-            bi_y_pxls_per_meter: 0,
-            bi_clr_used: 0,
-            bi_clr_important: 0,
+            size: 40,
+            width: bitmap.get_width(),
+            height: bitmap.get_height(),
+            bit_depth: bit_depth as u16,
+            planes: 1,
+            compression: 0,
+            size_image: 0,
+            x_pixels_per_meter: 0,
+            y_pixels_per_meter: 0,
+            colors_used: 0,
+            colors_important: 0,
         }
     }
 
-    /**
-     * Create a new Bit Map Info Header
-     * 
-     * @param {u32} size of BitMap::FileHeader in bytes
-     * @param {u32} width of image in pixels
-     * @param {u32} height of image in pixels
-     * @param {u16} number of bits per pixel
-     * @return {InfoHeader}
-     */
-    // pub fn new(bi_size: u32, bi_width: u32, bi_height: u32, bi_bit_depth: u16) -> InfoHeader
-    // {
-    //     InfoHeader {
-    //         bi_size,
-    //         bi_width,
-    //         bi_height,
-    //         bi_bit_depth,
-    //         bi_planes: 0,
-    //         bi_compression: 0,
-    //         bi_size_image: 0,
-    //         bi_x_pxls_per_meter: 0,
-    //         bi_y_pxls_per_meter: 0,
-    //         bi_clr_used: 0,
-    //         bi_clr_important: 0,
-    //     }
-    // }
-
+    ///
+    /// Read in header based on stream of bytes
+    /// 
+    /// Bytes should be in correct order
+    /// 
+    /// 1. size   as a u32
+    /// 2. width  as a u32
+    /// 3. height as a u32
+    /// 4. planes as a u16
+    /// 5. bit_depth as a u16
+    /// 6. compression as a u32
+    /// 7. size_image as a u32
+    /// 8. x_pixels_per_meter as a u32
+    /// 9. y_pixels_per_meter as a u32
+    /// 10. colors_used as a u32
+    /// 11. colors_important as a u32
+    /// 
     pub fn stream(bit_stream: &[u8]) -> InfoHeader
     {
         // starts at 14
         let mut i: usize = 14;
         InfoHeader {
-            bi_size: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_width: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_height: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_planes: util::byte_slice_to_u16(bit_stream, & mut i),
-            bi_bit_depth: util::byte_slice_to_u16(bit_stream, & mut i),
-            bi_compression: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_size_image: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_x_pxls_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_y_pxls_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_clr_used: util::byte_slice_to_u32(bit_stream, & mut i),
-            bi_clr_important: util::byte_slice_to_u32(bit_stream, & mut i),
+            size: util::byte_slice_to_u32(bit_stream, & mut i),
+            width: util::byte_slice_to_u32(bit_stream, & mut i),
+            height: util::byte_slice_to_u32(bit_stream, & mut i),
+            planes: util::byte_slice_to_u16(bit_stream, & mut i),
+            bit_depth: util::byte_slice_to_u16(bit_stream, & mut i),
+            compression: util::byte_slice_to_u32(bit_stream, & mut i),
+            size_image: util::byte_slice_to_u32(bit_stream, & mut i),
+            x_pixels_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
+            y_pixels_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
+            colors_used: util::byte_slice_to_u32(bit_stream, & mut i),
+            colors_important: util::byte_slice_to_u32(bit_stream, & mut i),
         }
     }
 
+    ///
+    /// Convert struct back into bytes
+    /// 
+    /// We need to do this manually because byte count matters (although I guess
+    /// we could edit the header and up the size) because when rust converts
+    /// the structure to bytes all the elements become the size of the biggest
+    /// element
+    /// 
     pub fn as_bytes(&self) -> Vec<u8>
     {
         let mut bytes = Vec::new();
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_size));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_width));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_height));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.bi_planes));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.bi_bit_depth));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_compression));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_size_image));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_x_pxls_per_meter));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_y_pxls_per_meter));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_clr_used));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.bi_clr_important));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.size));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.width));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.height));
+        bytes.extend_from_slice(&util::byte_slice_from_u16(self.planes));
+        bytes.extend_from_slice(&util::byte_slice_from_u16(self.bit_depth));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.compression));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.size_image));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.x_pixels_per_meter));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.y_pixels_per_meter));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.colors_used));
+        bytes.extend_from_slice(&util::byte_slice_from_u32(self.colors_important));
         bytes
     }
 
+    ///
+    /// Get the size of the information header in bytes
+    /// 
     pub fn get_info_size(&self) -> u32
     {
-        self.bi_size
+        self.size
     }
 
-    pub fn get_bit_depth(&self) -> BitDepth
+    ///
+    /// Get the bit depth of the bitmap
+    /// 
+    pub fn get_bit_depth(&self) -> Option<BitDepth>
     {
-        match self.bi_bit_depth {
-            1 => BitDepth::BW,
-            4 => BitDepth::Color16Bit,
-            8 => BitDepth::Color256Bit,
-            24 => BitDepth::AllColors,
-            32 => BitDepth::AllColorsAndShades,
-            _ => BitDepth::UNKNOWN,
+        match self.bit_depth {
+            1 => Some(BitDepth::BW),
+            4 => Some(BitDepth::Color16Bit),
+            8 => Some(BitDepth::Color256Bit),
+            24 => Some(BitDepth::AllColors),
+            32 => Some(BitDepth::AllColorsAndShades),
+            _ => None,
         }
     }
 
-    // pub fn set_bit_depth(&mut self, bit: BitDepth)
-    // {
-    //     self.bi_bit_depth = bit as u16;
-    // }
-
-    // pub fn set_colors_used(&mut self, colors: u32)
-    // {
-    //     self.bi_clr_used = colors;
-    // }
-
     pub fn get_width(&self) -> u32
     {
-        self.bi_width
+        self.width
     }
 
     pub fn get_height(&self) -> u32
     {
-        self.bi_height
+        self.height
     }
 
     pub fn get_colors_used(&self) -> u32
     {
-        self.bi_clr_used
+        self.colors_used
     }
-
-    // pub fn set_image_size(&mut self, size: u32)
-    // {
-    //     self.bi_size_image = size;
-    // }
 }
 
 
@@ -177,17 +170,17 @@ impl std::fmt::Display for InfoHeader
         Header Size: {}, Width: {}, Height: {}, Bit Count: {}
         Planes: {}, compression: {}, image size: {}
         x pxls per meter: {}, y pxls per meter: {}
-        clr_used: {} clr_important: {}",
-            self.bi_size,
-            self.bi_width,
-            self.bi_height,
-            self.bi_bit_depth,
-            self.bi_planes,
-            self.bi_compression,
-            self.bi_size_image,
-            self.bi_x_pxls_per_meter,
-            self.bi_y_pxls_per_meter,
-            self.bi_clr_used,
-            self.bi_clr_important)
+        colors_used: {} colors_important: {}",
+            self.size,
+            self.width,
+            self.height,
+            self.bit_depth,
+            self.planes,
+            self.compression,
+            self.size_image,
+            self.x_pixels_per_meter,
+            self.y_pixels_per_meter,
+            self.colors_used,
+            self.colors_important)
     }
 }

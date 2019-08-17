@@ -472,10 +472,10 @@ impl BitMap {
                 }
 
                 let top = Rgba::blur(&self.pixels[index_2], diff_x,
-                    &self.pixels[index_1], diff_x1);
+                    &self.pixels[index_1], diff_x1).unwrap();
                 let bottom = Rgba::blur(&self.pixels[index_4], diff_x,
-                    &self.pixels[index_3], diff_x1);
-                let color = Rgba::blur(&bottom, diff_y, &top, diff_y1);
+                    &self.pixels[index_3], diff_x1).unwrap();
+                let color = Rgba::blur(&bottom, diff_y, &top, diff_y1).unwrap();
                 i2[index] = color;
             }
         }

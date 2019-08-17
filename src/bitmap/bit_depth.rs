@@ -1,7 +1,6 @@
 #[derive(PartialEq, Clone, Copy)]
 pub enum BitDepth
 {
-    UNKNOWN = 0,
     BW = 1,
     Color16Bit = 4,
     Color256Bit = 8,
@@ -21,7 +20,6 @@ impl BitDepth
     {
         match self
         {
-            Self::UNKNOWN => 0,
             Self::BW => 1,
             Self::Color16Bit => 4,
             Self::Color256Bit => 8,

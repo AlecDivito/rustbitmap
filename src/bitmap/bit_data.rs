@@ -4,85 +4,33 @@ use super::bit_depth::BitDepth;
 use super::rgb_quad::RgbQuad;
 use super::rgba::Rgba;
 
+///
+/// Used for working with binary data when the image is read in or converted to
+/// a bit map with a bit depth of 1, 4, or 8. Each byte points to a color inside
+/// of colors.
+/// 
 pub struct BitData
 {
-    // stores colors key on each 6 bits of 8 available bits 
+    /// width of the image
     width: u32,
-    // height: u32,
+    /// height of the image
+    height: u32,
+    /// list of colors that are used in the image
     colors: Vec<Rgba>,
+    /// list of bytes that point to colors. Each byte could be point to 1 or 
+    /// more colors, depending on the bit depth
     bytes: Vec<u8>,
+    /// bit depth of the image
     bit_depth: BitDepth,
 }
 
 impl BitData
 {
-    // pub fn convert(pixels: &mut PixelData) -> BitData
-    // {
-    //     // TODO: Figure out how to get the byte width and byte_padding
-    //     // when the image size is NOT divisible by 4
-    //     let bit_padding =  match pixels.get_width() % 8
-    //     {
-    //         0 => 0,
-    //         _ => 8 - (pixels.get_width() % 8)
-    //     };
-    //     let byte_width = (pixels.get_width() + bit_padding) / 8;
-    //     let byte_padding = match byte_width % 4
-    //     {
-    //         0 => 0,
-    //         _ => 4 - (byte_width % 4)
-    //     };
-    //     pixels.convert_to_bw();
-    //     let mut bytes = Vec::new();
-        
-    //     let mut byte: u8 = 0;
-    //     let mut counter = 0;
-    //     let mut shift = 0;
-    //     for i in 0..pixels.len()
-    //     {
-    //         counter += 1;
-    //         shift = counter % 8;
-    //         let step = if pixels[i].is_white() { 1 } else { 0 };
-    //         byte = byte << 1;
-    //         byte += step;
-
-    //         if shift == 0 && i != 0 && pixels.get_width() >= 8
-    //         {
-    //             bytes.push(byte);
-    //             byte = 0;
-    //         }
-    //         if counter % pixels.get_width() == 0 && i != 0
-    //         {
-    //             if bit_padding != 0
-    //             {
-    //                 byte = byte << bit_padding;
-    //                 bytes.push(byte);
-    //                 byte = 0;
-    //                 counter = 0;
-    //             }
-
-    //             for _ in 0..byte_padding
-    //             {
-    //                 bytes.push(0);
-    //             }
-    //         }
-    //     }
-    //     if shift != 0
-    //     {
-    //         byte = byte << (8-shift);
-    //         bytes.push(byte);
-    //     }
-    //     for _ in 0..byte_padding
-    //     {
-    //         bytes.push(0);
-    //     }
-
-    //     BitData { bytes: bytes }
-    // }
-
     pub fn stream(
         bit_stream: &[u8],
         file: &FileHeader,
         info: &InfoHeader,
+        bit_depth: BitDepth,
         colors: &RgbQuad
     ) -> BitData
     {
@@ -95,8 +43,8 @@ impl BitData
         }
         BitData {
             width: info.get_width(),
-            // height: info.get_height(),
-            bit_depth: info.get_bit_depth(),
+            height: info.get_height(),
+            bit_depth,
             colors: colors.clone_colors(),
             bytes
         }
@@ -107,6 +55,8 @@ impl BitData
         self.bytes.clone()
     }
 
+    ///
+    /// 
     pub fn as_rgba(&self) -> Vec<Rgba>
     {
         let mut pixels = Vec::new();
