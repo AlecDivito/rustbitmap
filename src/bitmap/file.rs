@@ -90,16 +90,6 @@ impl File
         &self.info
     }
 
-    // pub fn get_file_header(&self) -> &FileHeader
-    // {
-    //     &self.file
-    // }
-
-    // pub fn get_colors(&self) -> &RgbQuad
-    // {
-    //     &self.colors
-    // }
-
     pub fn get_pixels(&self) -> &FileData
     {
         &self.data
