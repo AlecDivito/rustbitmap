@@ -1,115 +1,100 @@
-
 #[derive(Clone, Copy)]
-pub struct Rgba
-{
+pub struct Rgba {
     red: u8,
     green: u8,
     blue: u8,
-    alpha: u8
+    alpha: u8,
 }
 
-impl Rgba
-{
-    pub fn white() -> Rgba
-    {
+impl Rgba {
+    pub fn white() -> Rgba {
         Rgba {
             red: 255,
             green: 255,
             blue: 255,
-            alpha: 100
+            alpha: 100,
         }
     }
 
-    pub fn black() -> Rgba
-    {
+    pub fn black() -> Rgba {
         Rgba {
             red: 0,
             green: 0,
             blue: 0,
-            alpha: 100
+            alpha: 100,
         }
     }
 
-    pub fn rgb(red: u8, green: u8, blue: u8) -> Rgba
-    {
+    pub fn rgb(red: u8, green: u8, blue: u8) -> Rgba {
         Rgba {
             red,
             green,
             blue,
-            alpha: 100
+            alpha: 100,
         }
     }
 
-    pub fn bgr(blue: u8, green: u8, red: u8) -> Rgba
-    {
+    pub fn bgr(blue: u8, green: u8, red: u8) -> Rgba {
         Rgba {
             red,
             green,
             blue,
-            alpha: 100
+            alpha: 100,
         }
     }
 
-    pub fn bgra(blue: u8, green: u8, red: u8, alpha: u8) -> Rgba
-    {
+    pub fn bgra(blue: u8, green: u8, red: u8, alpha: u8) -> Rgba {
         Rgba {
             red,
             green,
             blue,
-            alpha: std::cmp::min(alpha, 100)
+            alpha: std::cmp::min(alpha, 100),
         }
     }
 
-    pub fn rgba(red: u8, green: u8, blue: u8, alpha: u8) -> Rgba
-    {
+    pub fn rgba(red: u8, green: u8, blue: u8, alpha: u8) -> Rgba {
         Rgba {
             red,
             green,
             blue,
-            alpha: std::cmp::min(alpha, 100)
+            alpha: std::cmp::min(alpha, 100),
         }
     }
 
-    pub fn recolor_to(&mut self, other: &Self)
-    {
+    pub fn recolor_to(&mut self, other: &Self) {
         self.red = other.red;
         self.green = other.green;
         self.blue = other.blue;
         self.alpha = other.alpha;
     }
 
-    pub fn get_red(&self) -> u8
-    {
+    pub fn get_red(&self) -> u8 {
         self.red
     }
 
-    pub fn get_green(&self) -> u8
-    {
+    pub fn get_green(&self) -> u8 {
         self.green
     }
 
-    pub fn get_blue(&self) -> u8
-    {
+    pub fn get_blue(&self) -> u8 {
         self.blue
     }
 
-    pub fn get_alpha(&self) -> u8
-    {
+    pub fn get_alpha(&self) -> u8 {
         self.alpha
     }
 }
 
-/// 
+///
 /// Methods used to manipulate the rgba color in a certain way
-/// 
+///
 impl Rgba {
-    /// 
+    ///
     /// Convert pixel color to gray scale
-    /// 
-    pub fn color_to_gray(&mut self)
-    {
+    ///
+    pub fn color_to_gray(&mut self) {
         let red_gray = self.red as f32 * 0.2126;
-        let green_gray = self.green as f32 * 0.7152; 
+        let green_gray = self.green as f32 * 0.7152;
         let blue_gray = self.blue as f32 * 0.0722;
         let pixel_gray = (red_gray + green_gray + blue_gray).round() as u8;
         self.set_gray_scale_pixel(pixel_gray);
@@ -117,84 +102,79 @@ impl Rgba {
 
     ///
     /// set all the colors to the same color
-    /// 
-    fn set_gray_scale_pixel(&mut self, gray: u8)
-    {
+    ///
+    fn set_gray_scale_pixel(&mut self, gray: u8) {
         self.red = gray;
         self.green = gray;
         self.blue = gray;
     }
 
-    /// 
+    ///
     /// Blur 2 color's together
-    /// 
+    ///
     /// By passing in different factors, you can effect how much one color will
     /// effect the other.
-    /// 
+    ///
     /// @param {&Rgba} first color to blur
     /// @param {f32} factor how much the first color will effect the outcome
     /// @param {&Rgba} second color to blur
     /// @param {f32} factor how much the second color will effect the outcome
     /// @return {Rgba} new color of the 2 colors blurred together
-    /// 
-    pub fn blur(lhs: &Rgba, lhs_factor: f32, rhs: &Rgba, rhs_factor: f32) -> Result<Rgba, &'static str>
-    {
-        if lhs_factor + rhs_factor > 1.0 || lhs_factor + rhs_factor < 0.0
-        {
+    ///
+    pub fn blur(
+        lhs: &Rgba,
+        lhs_factor: f32,
+        rhs: &Rgba,
+        rhs_factor: f32,
+    ) -> Result<Rgba, &'static str> {
+        if lhs_factor + rhs_factor > 1.0 || lhs_factor + rhs_factor < 0.0 {
             return Err("Error blurring colors, factors should be able to add up to 1.");
         }
         // create the new colors for the left hand side
-        let lhs_red   = lhs.red as f32 * lhs_factor;
+        let lhs_red = lhs.red as f32 * lhs_factor;
         let lhs_green = lhs.green as f32 * lhs_factor;
-        let lhs_blue  = lhs.blue as f32 * lhs_factor;
+        let lhs_blue = lhs.blue as f32 * lhs_factor;
         let lhs_alpha = lhs.alpha as f32 * lhs_factor;
         // create the new colors for the right hand side
-        let rhs_red   = rhs.red as f32 * rhs_factor;
+        let rhs_red = rhs.red as f32 * rhs_factor;
         let rhs_green = rhs.green as f32 * rhs_factor;
-        let rhs_blue  = rhs.blue as f32 * rhs_factor;
+        let rhs_blue = rhs.blue as f32 * rhs_factor;
         let rhs_alpha = rhs.alpha as f32 * rhs_factor;
         // merge the 2 colors together
         Ok(Rgba {
-            red:   (lhs_red + rhs_red).round() as u8,
+            red: (lhs_red + rhs_red).round() as u8,
             green: (lhs_green + rhs_green).round() as u8,
-            blue:  (lhs_blue + rhs_blue).round() as u8,
+            blue: (lhs_blue + rhs_blue).round() as u8,
             alpha: (lhs_alpha + rhs_alpha).round() as u8,
         })
     }
-
 }
 
-impl std::cmp::PartialEq for Rgba
-{
-    fn eq(&self, other: &Self) -> bool
-    {
-        self.red == other.red &&
-        self.green == other.green &&
-        self.blue == other.blue &&
-        self.alpha == other.alpha
+impl std::cmp::PartialEq for Rgba {
+    fn eq(&self, other: &Self) -> bool {
+        self.red == other.red
+            && self.green == other.green
+            && self.blue == other.blue
+            && self.alpha == other.alpha
     }
 }
 
-impl std::fmt::Display for Rgba
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
-    {
-        write!(f, "Red: {}, Green: {}, Blue: {}, Alpha: {}",
-            self.red,
-            self.green,
-            self.blue,
-            self.alpha)
+impl std::fmt::Display for Rgba {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "Red: {}, Green: {}, Blue: {}, Alpha: {}",
+            self.red, self.green, self.blue, self.alpha
+        )
     }
 }
 
 #[cfg(test)]
-mod test
-{
+mod test {
     use super::Rgba;
 
     #[test]
-    fn test_blur_sent_bad_factors()
-    {
+    fn test_blur_sent_bad_factors() {
         let white = Rgba::white();
         let black = Rgba::black();
         let blur = Rgba::blur(&white, 1.0, &black, 1.0);
@@ -202,8 +182,7 @@ mod test
     }
 
     #[test]
-    fn test_blur_two_whites()
-    {
+    fn test_blur_two_whites() {
         let white1 = Rgba::white();
         let white2 = Rgba::white();
         let blur = Rgba::blur(&white1, 0.5, &white2, 0.5);
@@ -212,8 +191,7 @@ mod test
     }
 
     #[test]
-    fn test_blur_correct_color()
-    {
+    fn test_blur_correct_color() {
         let white = Rgba::white();
         let black = Rgba::black();
         let blur = Rgba::blur(&white, 0.5, &black, 0.5);

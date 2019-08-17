@@ -25,7 +25,7 @@ fn main() {
     // bitmap2.resize_by(0.25);
     // bitmap3.resize_to(50, 48);
     // bitmap4.resize_to(500, 50);
-    
+
     // bitmap1.save_as("./a/w3cc_home.bmp").unwrap();
     // bitmap2.save_as("./a/w3cc_home_2.bmp").unwrap();
     // bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
@@ -47,10 +47,10 @@ fn main() {
     new_bits.replace_all_color(Rgba::white(), Rgba::black());
     new_bits.fill_region(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
     new_bits.save_as("./temp1.bmp").unwrap();
-    bitmap.paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0).unwrap();
+    bitmap
+        .paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0)
+        .unwrap();
     bitmap.save_as("./temp.bmp").unwrap();
-
-
 
     // Possibilities to add
     // simplify_and_save()

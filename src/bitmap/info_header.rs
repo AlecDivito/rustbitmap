@@ -1,10 +1,9 @@
-use super::util;
 use super::bit_depth::BitDepth;
+use super::util;
 
 use super::image::BitMap;
 
-pub struct InfoHeader
-{
+pub struct InfoHeader {
     /// specifies the size of the BitMapFileHeader structure, in bytes
     size: u32,
     /// specifies the width of the image, in pixels
@@ -39,13 +38,11 @@ pub struct InfoHeader
     colors_important: u32,
 }
 
-impl InfoHeader
-{
+impl InfoHeader {
     ///
     /// Create a header based on a bitmap.
-    /// 
-    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader
-    {
+    ///
+    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader {
         InfoHeader {
             size: 40,
             width: bitmap.get_width(),
@@ -63,9 +60,9 @@ impl InfoHeader
 
     ///
     /// Read in header based on stream of bytes
-    /// 
+    ///
     /// Bytes should be in correct order
-    /// 
+    ///
     /// 1. size   as a u32
     /// 2. width  as a u32
     /// 3. height as a u32
@@ -77,36 +74,34 @@ impl InfoHeader
     /// 9. y_pixels_per_meter as a u32
     /// 10. colors_used as a u32
     /// 11. colors_important as a u32
-    /// 
-    pub fn stream(bit_stream: &[u8]) -> InfoHeader
-    {
+    ///
+    pub fn stream(bit_stream: &[u8]) -> InfoHeader {
         // starts at 14
         let mut i: usize = 14;
         InfoHeader {
-            size: util::byte_slice_to_u32(bit_stream, & mut i),
-            width: util::byte_slice_to_u32(bit_stream, & mut i),
-            height: util::byte_slice_to_u32(bit_stream, & mut i),
-            planes: util::byte_slice_to_u16(bit_stream, & mut i),
-            bit_depth: util::byte_slice_to_u16(bit_stream, & mut i),
-            compression: util::byte_slice_to_u32(bit_stream, & mut i),
-            size_image: util::byte_slice_to_u32(bit_stream, & mut i),
-            x_pixels_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
-            y_pixels_per_meter: util::byte_slice_to_u32(bit_stream, & mut i),
-            colors_used: util::byte_slice_to_u32(bit_stream, & mut i),
-            colors_important: util::byte_slice_to_u32(bit_stream, & mut i),
+            size: util::byte_slice_to_u32(bit_stream, &mut i),
+            width: util::byte_slice_to_u32(bit_stream, &mut i),
+            height: util::byte_slice_to_u32(bit_stream, &mut i),
+            planes: util::byte_slice_to_u16(bit_stream, &mut i),
+            bit_depth: util::byte_slice_to_u16(bit_stream, &mut i),
+            compression: util::byte_slice_to_u32(bit_stream, &mut i),
+            size_image: util::byte_slice_to_u32(bit_stream, &mut i),
+            x_pixels_per_meter: util::byte_slice_to_u32(bit_stream, &mut i),
+            y_pixels_per_meter: util::byte_slice_to_u32(bit_stream, &mut i),
+            colors_used: util::byte_slice_to_u32(bit_stream, &mut i),
+            colors_important: util::byte_slice_to_u32(bit_stream, &mut i),
         }
     }
 
     ///
     /// Convert struct back into bytes
-    /// 
+    ///
     /// We need to do this manually because byte count matters (although I guess
     /// we could edit the header and up the size) because when rust converts
     /// the structure to bytes all the elements become the size of the biggest
     /// element
-    /// 
-    pub fn as_bytes(&self) -> Vec<u8>
-    {
+    ///
+    pub fn as_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.size));
         bytes.extend_from_slice(&util::byte_slice_from_u32(self.width));
@@ -124,17 +119,15 @@ impl InfoHeader
 
     ///
     /// Get the size of the information header in bytes
-    /// 
-    pub fn get_info_size(&self) -> u32
-    {
+    ///
+    pub fn get_info_size(&self) -> u32 {
         self.size
     }
 
     ///
     /// Get the bit depth of the bitmap
-    /// 
-    pub fn get_bit_depth(&self) -> Option<BitDepth>
-    {
+    ///
+    pub fn get_bit_depth(&self) -> Option<BitDepth> {
         match self.bit_depth {
             1 => Some(BitDepth::BW),
             4 => Some(BitDepth::Color16Bit),
@@ -145,28 +138,24 @@ impl InfoHeader
         }
     }
 
-    pub fn get_width(&self) -> u32
-    {
+    pub fn get_width(&self) -> u32 {
         self.width
     }
 
-    pub fn get_height(&self) -> u32
-    {
+    pub fn get_height(&self) -> u32 {
         self.height
     }
 
-    pub fn get_colors_used(&self) -> u32
-    {
+    pub fn get_colors_used(&self) -> u32 {
         self.colors_used
     }
 }
 
-
-impl std::fmt::Display for InfoHeader
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
-    {
-        write!(f, "
+impl std::fmt::Display for InfoHeader {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "
         Header Size: {}, Width: {}, Height: {}, Bit Count: {}
         Planes: {}, compression: {}, image size: {}
         x pxls per meter: {}, y pxls per meter: {}
@@ -181,6 +170,7 @@ impl std::fmt::Display for InfoHeader
             self.x_pixels_per_meter,
             self.y_pixels_per_meter,
             self.colors_used,
-            self.colors_important)
+            self.colors_important
+        )
     }
 }
