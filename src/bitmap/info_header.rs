@@ -140,21 +140,21 @@ impl InfoHeader {
 
     ///
     /// Get the width of the image
-    /// 
+    ///
     pub fn get_width(&self) -> u32 {
         self.width
     }
 
     ///
     /// Get the height of the image
-    /// 
+    ///
     pub fn get_height(&self) -> u32 {
         self.height
     }
 
     ///
     /// Get the number of colors used to create the image
-    /// 
+    ///
     pub fn get_colors_used(&self) -> u32 {
         self.colors_used
     }
@@ -185,12 +185,11 @@ impl std::fmt::Display for InfoHeader {
     }
 }
 
-
 #[cfg(test)]
 mod test {
-    use super::InfoHeader;
-    use super::BitMap;
     use super::BitDepth;
+    use super::BitMap;
+    use super::InfoHeader;
 
     #[test]
     fn get_info_size_in_bytes_after_bitmap_conversion() {

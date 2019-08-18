@@ -15,7 +15,7 @@ pub struct File {
 impl File {
     ///
     /// Read in Bitmap file from file
-    /// 
+    ///
     pub fn read(filename: &str) -> Option<File> {
         let array = std::fs::read(filename).expect("Couldn't open file");
         let file = FileHeader::stream(&array);
@@ -32,7 +32,7 @@ impl File {
 
     ///
     /// Create a bitmap file from a bitmap image
-    /// 
+    ///
     pub fn create(bitmap: &BitMap) -> File {
         // TODO: Figure out if we can simplify this
         let bit_depth = BitDepth::AllColors;
@@ -114,8 +114,8 @@ impl std::fmt::Display for File {
 
 #[cfg(test)]
 mod test {
-    use super::File;
     use super::BitMap;
+    use super::File;
 
     #[test]
     fn get_number_of_bytes_after_creating_file_from_bitmap() {
@@ -126,6 +126,6 @@ mod test {
         let color_bytes = 0;
         let header_bytes = 14;
         let bytes = pixel_bytes + info_header_bytes + color_bytes + header_bytes;
-        assert_eq!(unsafe { file.to_bytes().len() } , bytes);
+        assert_eq!(unsafe { file.to_bytes().len() }, bytes);
     }
 }

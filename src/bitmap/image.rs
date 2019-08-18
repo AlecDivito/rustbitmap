@@ -15,7 +15,7 @@ pub struct BitMap {
 
 ///
 /// This block deals with constructors, and getters and setters
-/// 
+///
 impl BitMap {
     ///
     /// Create a bitmap by reading in a .bmp file
@@ -117,9 +117,8 @@ impl BitMap {
 
 ///
 /// This block deals with saving the image
-/// 
+///
 impl BitMap {
-
     ///
     /// Save the image to its original location
     ///
@@ -160,8 +159,7 @@ impl BitMap {
     ///
     ///
     #[allow(dead_code)]
-    pub fn simplify_and_save() -> std::io::Result<()>
-    {
+    pub fn simplify_and_save() -> std::io::Result<()> {
         Ok(())
     }
 
@@ -547,8 +545,6 @@ impl std::fmt::Display for BitMap {
     }
 }
 
-
-
 #[cfg(test)]
 mod test {
     use super::BitMap;
@@ -636,10 +632,8 @@ mod test {
     fn replace_all_color() {
         let mut image = BitMap::new(10, 10);
         image.replace_all_color(Rgba::white(), Rgba::black());
-        for x in 0..10
-        {
-            for y in 0..10
-            {
+        for x in 0..10 {
+            for y in 0..10 {
                 assert!(image.get_pixel(x, y).unwrap() == &Rgba::black());
             }
         }
@@ -654,10 +648,8 @@ mod test {
     #[test]
     fn fill_region_inside_of_image() {
         let mut image = BitMap::new(10, 10);
-        for x in 0..10
-        {
-            for y in 0..10
-            {
+        for x in 0..10 {
+            for y in 0..10 {
                 if (x < 2 || x > 7) || (y < 2 || y > 7) {
                     image.set_pixel(x, y, Rgba::black()).unwrap();
                     println!("{} {}", x, y);
@@ -665,13 +657,10 @@ mod test {
             }
         }
         image.fill_region(5, 5, Rgba::black()).unwrap();
-        for x in 0..10
-        {
-            for y in 0..10
-            {
+        for x in 0..10 {
+            for y in 0..10 {
                 assert!(image.get_pixel(x, y).unwrap() == &Rgba::black());
             }
         }
     }
-
 }
