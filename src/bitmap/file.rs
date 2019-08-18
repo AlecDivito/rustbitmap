@@ -33,9 +33,8 @@ impl File {
     ///
     /// Create a bitmap file from a bitmap image
     ///
-    pub fn create(bitmap: &BitMap) -> File {
+    pub fn create(bitmap: &BitMap, bit_depth: BitDepth) -> File {
         // TODO: Figure out if we can simplify this
-        let bit_depth = BitDepth::AllColors;
         let data = FileData::from_bitmap(bitmap, bit_depth);
         let colors = RgbQuad::empty();
         let info = InfoHeader::from_bitmap(bitmap, bit_depth);
@@ -114,13 +113,14 @@ impl std::fmt::Display for File {
 
 #[cfg(test)]
 mod test {
+    use super::BitDepth;
     use super::BitMap;
     use super::File;
 
     #[test]
     fn get_number_of_bytes_after_creating_file_from_bitmap() {
         let b = BitMap::new(2, 2);
-        let file = File::create(&b);
+        let file = File::create(&b, BitDepth::AllColors);
         let pixel_bytes = 16;
         let info_header_bytes = 40;
         let color_bytes = 0;

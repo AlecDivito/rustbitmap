@@ -1,6 +1,7 @@
 // use std::error::Error;
 use super::file::File;
 use super::rgba::Rgba;
+use super::bit_depth::BitDepth;
 
 pub struct BitMap {
     /// file read from
@@ -133,20 +134,27 @@ impl BitMap {
                 Ok(_) => Ok(()),
                 Err(_) => Err("Error saving file to disk."),
             },
-            None => Err("Couldn't save image because you didn't create the bitmap from an image"),
+            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
         }
     }
 
     ///
     /// Save the image to a new location on disk
     ///
-    pub fn save_as(&self, filename: &str) -> std::io::Result<()> {
-        let file = File::create(self);
-        use std::io::Write;
-        let mut bit_stream = unsafe { file.to_bytes() };
-        let mut file = std::fs::File::create(filename)?;
-        file.write_all(bit_stream.as_mut_slice())?;
-        Ok(())
+    pub fn save_as(&self, filename: &str) -> Result<(), &'static str> {
+        // check to see if any pixels are transparent
+        let mut bit_depth = BitDepth::AllColors;
+        for c in &self.pixels {
+            if c.is_transparent() {
+                bit_depth = BitDepth::AllColorsAndShades;
+                break;
+            }
+        }
+
+        match self.save_as_file(filename, bit_depth) {
+            Ok(_) => Ok(()),
+            Err(_) => Err("Error saving file to disk."),
+        }
     }
 
     ///
@@ -160,16 +168,50 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    ///
-    #[allow(dead_code)]
-    pub fn simplify_and_save() -> std::io::Result<()> {
-        Ok(())
+    pub fn simplify_and_save(&self) -> Result<(), &'static str> {
+        let bit_depth = BitDepth::get_suggested_bit_depth(&self.pixels);
+
+        match self.filename.as_ref() {
+            Some(f) => match self.save_as_file(f, bit_depth) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Error saving file to disk."),
+            },
+            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
+        }
     }
 
-    // pub fn simplify_and_save_as() -> std::io::Result<()>
-    // {
+    ///
+    /// Analyze the currently recorded pixels and try and find the lowest bit
+    /// count possible to save the images at.
+    ///
+    /// The bit depth will be:
+    /// if there are at most 2 colors present, 2 bit
+    /// if there are at most 16 colors present, 4 bit
+    /// if there are at most 256 colors present, 8 bit
+    /// if there are more then 256 colors and all alphas are 100, 24 bit
+    /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
+    ///
+    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), &'static str>
+    {
+        let bit_depth = BitDepth::get_suggested_bit_depth(&self.pixels);
 
-    // }
+        match self.save_as_file(filename, bit_depth) {
+            Ok(_) => Ok(()),
+            Err(_) => Err("Error saving file to disk."),
+        }
+    }
+
+    ///
+    /// Actually save the file using the given filename and bit depth
+    /// 
+    fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> std::io::Result<()> {
+        let file = File::create(self, bit_depth);
+        use std::io::Write;
+        let mut bit_stream = unsafe { file.to_bytes() };
+        let mut file = std::fs::File::create(filename)?;
+        file.write_all(bit_stream.as_mut_slice())?;
+        Ok(())
+    }
 }
 
 ///

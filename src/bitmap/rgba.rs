@@ -68,6 +68,10 @@ impl Rgba {
         self.alpha = other.alpha;
     }
 
+    pub fn is_transparent(&self) -> bool {
+        self.alpha < 100
+    }
+
     pub fn get_red(&self) -> u8 {
         self.red
     }
@@ -81,7 +85,7 @@ impl Rgba {
     }
 
     pub fn get_alpha(&self) -> u8 {
-        self.alpha
+        std::cmp::min(self.alpha, 100)
     }
 }
 
