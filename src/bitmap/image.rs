@@ -51,6 +51,9 @@ impl BitMap {
     ///
     pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> BitMap // Result<BitMap, &'static str>
     {
+        // TODO: fix issue where pixels aren't in the correct position
+        //       pixels need to be in a bitmap format or else the api wont work
+        //       
         // if width * height != pixels.len()
         // {
         //     return Err("The area must match the ")
@@ -503,6 +506,41 @@ impl BitMap {
         self.height = height;
         self.pixels = i2;
     }
+
+    ///
+    /// Rotate the entire image right by 90 degrees
+    /// 
+    pub fn rotate_right(&mut self) {
+        let mut new_pixels = Vec::with_capacity(self.get_size() as usize);
+        for x in (0..self.width).rev() {
+            for y in (0..self.height).rev() {
+                new_pixels.push(self.get_pixel(x, y).unwrap().clone());
+            }
+        }
+
+        self.pixels = new_pixels;
+        let temp_width = self.width;
+        self.width = self.height;
+        self.height = temp_width;
+    }
+
+    ///
+    /// Rotate the entire image left by 90 degrees
+    /// 
+    pub fn rotate_left(&mut self) {
+        let mut new_pixels = Vec::with_capacity(self.get_size() as usize);
+        for x in 0..self.width {
+            for y in 0..self.height {
+                new_pixels.push(self.get_pixel(x, y).unwrap().clone());
+            }
+        }
+
+        self.pixels = new_pixels;
+        let temp_width = self.width;
+        self.width = self.height;
+        self.height = temp_width;
+    }
+
 }
 
 impl std::cmp::PartialEq for BitMap {
@@ -663,4 +701,39 @@ mod test {
             }
         }
     }
+
+    #[test]
+    fn rotate_image_left() {
+        let gray = Rgba::rgb(127, 127, 127);
+        let red = Rgba::rgb(255, 0, 0);
+        let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
+        let mut bitmap = BitMap::create(4, 1, pixels);
+        let temp_width = bitmap.get_width();
+        let temp_height = bitmap.get_height();
+        bitmap.rotate_left();
+        assert_eq!(temp_width, bitmap.get_height());
+        assert_eq!(temp_height, bitmap.get_width());
+        assert!(bitmap.get_pixel(0, 0).unwrap() == &red);
+        assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::black());
+        assert!(bitmap.get_pixel(0, 2).unwrap() == &Rgba::white());
+        assert!(bitmap.get_pixel(0, 3).unwrap() == &gray);
+    }
+
+    #[test]
+    fn rotate_image_right() {
+        let gray = Rgba::rgb(127, 127, 127);
+        let red = Rgba::rgb(255, 0, 0);
+        let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
+        let mut bitmap = BitMap::create(4, 1, pixels);
+        let temp_width = bitmap.get_width();
+        let temp_height = bitmap.get_height();
+        bitmap.rotate_right();
+        assert_eq!(temp_width, bitmap.get_height());
+        assert_eq!(temp_height, bitmap.get_width());
+        assert!(bitmap.get_pixel(0, 3).unwrap() == &red);
+        assert!(bitmap.get_pixel(0, 2).unwrap() == &Rgba::black());
+        assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::white());
+        assert!(bitmap.get_pixel(0, 0).unwrap() == &gray);
+    }
+
 }

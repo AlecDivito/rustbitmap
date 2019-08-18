@@ -31,32 +31,61 @@ fn main() {
     // bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
     // bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
 
-    let mut bitmap = BitMap::read("./test.bmp").unwrap();
-    // bitmap.resize_to(100, 100);
-    // bitmap.resize_by(10.0);
-    let mut new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
-    let bits = BitMap::new(50, 50);
-    new_bits.paste(&bits, 0, 0).unwrap();
+    let pixels = vec![Rgba::rgb(127, 127, 127), Rgba::white(), Rgba::black(), Rgba::rgb(255, 0, 0)];
+    let mut bitmap = BitMap::create(4, 1, pixels);
+    bitmap.save_as("new-0.bmp").unwrap();
+    bitmap.rotate_right();
+    bitmap.save_as("new-1.bmp").unwrap();
+    bitmap.rotate_right();
+    bitmap.save_as("new-2.bmp").unwrap();
+    bitmap.rotate_right();
+    bitmap.save_as("new-3.bmp").unwrap();
+    bitmap.rotate_right();
+    bitmap.save_as("new-4.bmp").unwrap();
+    bitmap.rotate_right();
+    bitmap.rotate_right();
+    bitmap.rotate_right();
 
-    bitmap.color_to_gray();
-    for x in 0..100 {
-        for y in 0..100 {
-            bitmap.set_pixel(x, y, Rgba::rgb(255, 255, 255)).unwrap();
-        }
-    }
-    new_bits.replace_all_color(Rgba::white(), Rgba::black());
-    new_bits.fill_region(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
-    new_bits.save_as("./temp1.bmp").unwrap();
-    bitmap
-        .paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0)
-        .unwrap();
-    bitmap.save_as("./temp.bmp").unwrap();
+    bitmap.rotate_left();
+    bitmap.rotate_left();
+    bitmap.rotate_left();
+    bitmap.save_as("new-5.bmp").unwrap();
+
+    // let mut bitmap = BitMap::read("./test.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("./after-right-temp-1.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("./after-right-temp-2.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("./after-right-temp-3.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("./after-right-temp-0.bmp").unwrap();
+    // // bitmap.resize_to(100, 100);
+    // // bitmap.resize_by(10.0);
+    // let mut new_bits = bitmap.crop(0, 0, 200, 200).unwrap();
+    // let bits = BitMap::new(50, 50);
+    // new_bits.paste(&bits, 0, 0).unwrap();
+
+    // bitmap.color_to_gray();
+    // for x in 0..100 {
+    //     for y in 0..100 {
+    //         bitmap.set_pixel(x, y, Rgba::rgb(255, 255, 255)).unwrap();
+    //     }
+    // }
+    // new_bits.replace_all_color(Rgba::white(), Rgba::black());
+    // new_bits.fill_region(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
+    // new_bits.save_as("./temp1.bmp").unwrap();
+    // bitmap
+    //     .paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0)
+    //     .unwrap();
+    // bitmap.save_as("./before-temp.bmp").unwrap();
+
 
     // Possibilities to add
     // simplify_and_save()
     // simplify_and_save_as()
     // slow_resize_to() // bicubic
     // slow_resize_by() // bicubic
-    // bits.rotate_left()
+    // bits.rotate_right()
     // bits.rotate_right()
 }
