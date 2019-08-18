@@ -1,5 +1,4 @@
 use super::image::BitMap;
-use super::rgba::Rgba;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum BitDepth {
@@ -61,8 +60,8 @@ impl std::fmt::Display for BitDepth {
 
 #[cfg(test)]
 mod test {
-    use super::BitMap;
     use super::BitDepth;
+    use super::BitMap;
     use super::Rgba;
 
     #[test]
@@ -71,19 +70,25 @@ mod test {
         assert!(BitDepth::BW == BitDepth::get_suggested_bit_depth(&bitmap));
 
         for x in 0..2 {
-            bitmap.set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8)).unwrap();
+            bitmap
+                .set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8))
+                .unwrap();
         }
         assert!(BitDepth::Color16Bit == BitDepth::get_suggested_bit_depth(&bitmap));
 
         for x in 0..15 {
-            bitmap.set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8)).unwrap();
+            bitmap
+                .set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8))
+                .unwrap();
         }
         assert!(BitDepth::Color16Bit == BitDepth::get_suggested_bit_depth(&bitmap));
         bitmap.set_pixel(15, 0, Rgba::rgb(16, 16, 16)).unwrap();
         assert!(BitDepth::Color256Bit == BitDepth::get_suggested_bit_depth(&bitmap));
 
         for x in 0..bitmap.get_width() {
-            bitmap.set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8)).unwrap();
+            bitmap
+                .set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8))
+                .unwrap();
         }
         assert!(BitDepth::Color256Bit == BitDepth::get_suggested_bit_depth(&bitmap));
 

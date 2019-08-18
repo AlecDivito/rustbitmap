@@ -13,10 +13,9 @@ pub enum FileData {
 }
 
 impl FileData {
-    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> FileData {
-        FileData::Pixels(PixelData::from_bitmap(bitmap, bit_depth))
-    }
-
+    ///
+    /// Read in bytes from a stream and convert it into image data (pixels)
+    ///
     pub fn stream(
         bit_stream: &[u8],
         file: &FileHeader,
@@ -33,6 +32,18 @@ impl FileData {
                 )),
             },
             None => None,
+        }
+    }
+
+    ///
+    /// Convert image data (pixels) from a bitmap into bits and bytes
+    ///
+    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> FileData {
+        match bit_depth {
+            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => {
+                FileData::Bits(BitData::from_bitmap(bitmap, bit_depth))
+            }
+            _ => FileData::Pixels(PixelData::from_bitmap(bitmap, bit_depth)),
         }
     }
 
