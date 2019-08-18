@@ -133,10 +133,10 @@ impl PixelData {
     ///
     /// get the buffer byte size needed to add to each row to be able to be
     /// read from other bitmap applications
-    /// 
+    ///
     /// This tell you how much padding you need to add to the file when saving
     /// it back to disk
-    /// 
+    ///
     /// Bitmaps must be divisible by 4
     ///
     fn get_row_padding_size(width: u32, bit_depth: BitDepth) -> u32 {
@@ -179,9 +179,9 @@ impl std::fmt::Display for PixelData {
 
 #[cfg(test)]
 mod test {
-    use super::PixelData;
-    use super::BitMap;
     use super::BitDepth;
+    use super::BitMap;
+    use super::PixelData;
     use super::Rgba;
 
     #[test]

@@ -51,7 +51,7 @@ impl FileHeader {
 
     ///
     /// Get FileHeader as a array of bytes
-    /// 
+    ///
     pub fn as_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&[self.bitmap_type[0] as u8, self.bitmap_type[1] as u8]);

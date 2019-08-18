@@ -45,14 +45,14 @@ impl RgbQuad {
 
     ///
     /// Clone the colors
-    /// 
+    ///
     pub fn clone_colors(&self) -> Vec<Rgba> {
         self.data.clone()
     }
 
     ///
     /// Get the number of colors stored in RgbQuad
-    /// 
+    ///
     pub fn len(&self) -> usize {
         self.data.len()
     }
