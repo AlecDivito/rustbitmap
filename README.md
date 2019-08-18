@@ -1,5 +1,7 @@
-## rusty-bitmap: Bitmap reader, editor, and writer in rust
-Just a simple bitmap reader. Easily read in bitmaps of any size, edit them anyway you like and save them to any bitcount you want.
+# rusty-bitmap
+[![Build Status](https://travis-ci.org/AlecDivito/rusty-bitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rusty-bitmap)
+[![codecov.io](https://codecov.io/github/AlecDivto/rusty-bitmap/coverage.svg?branch=master)](https://codecov.io/github/AlecDivito/rusty-bitmap?branch=master)
+Just a simple bitmap file reader. Easily read in bitmaps of any size, edit them anyway you like and save them to any bitcount you want.
 
 ## Project Status
 This project is currently in development. Users can currently read in bitmap and save them to the same file or to a new file. Functionality for editing the images while in memory is currently in progress
