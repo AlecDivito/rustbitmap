@@ -13,6 +13,9 @@ pub struct BitMap {
     pixels: Vec<Rgba>,
 }
 
+///
+/// This block deals with constructors, and getters and setters
+/// 
 impl BitMap {
     ///
     /// Create a bitmap by reading in a .bmp file
@@ -44,6 +47,7 @@ impl BitMap {
 
     ///
     /// Create a new image from a list of pixels
+    /// TODO: Added Error handling if there are not enough pixels
     ///
     pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> BitMap // Result<BitMap, &'static str>
     {
@@ -59,54 +63,12 @@ impl BitMap {
         }
     }
 
-    ///
-    /// Save the image to its original location
-    ///
-    /// Fail if no original location is linked to the current bitmap
-    ///
-    pub fn save(&self) -> Result<(), &'static str> {
-        match self.filename.as_ref() {
-            Some(f) => match self.save_as(f) {
-                Ok(_) => Ok(()),
-                Err(_) => Err("Error saving file to disk."),
-            },
-            None => Err("Couldn't save image because you didn't create the bitmap from an image"),
+    pub fn get_pixel(&self, x: u32, y: u32) -> Option<&Rgba> {
+        if x >= self.width || y >= self.height {
+            return None;
         }
+        Some(&self.pixels[self.get_index(x, y)])
     }
-
-    ///
-    /// Save the image to a new location on disk
-    ///
-    pub fn save_as(&self, filename: &str) -> std::io::Result<()> {
-        let file = File::create(self);
-        use std::io::Write;
-        let mut bit_stream = unsafe { file.to_bytes() };
-        let mut file = std::fs::File::create(filename)?;
-        file.write_all(bit_stream.as_mut_slice())?;
-        Ok(())
-    }
-
-    /**
-     * Analyze the currently recorded pixels and try and find the lowest bit
-     * count possible to save the images at.
-     *
-     * The bit depth will be:
-     * if there are at most 2 colors present, 2 bit
-     * if there are at most 16 colors present, 4 bit
-     * if there are at most 256 colors present, 8 bit
-     * if there are more then 256 colors and all alphas are 100, 24 bit
-     * if there are more then 256 colors and at least one alpha is not 100, 32 bit
-     *
-     */
-    // pub fn simplify_and_save() -> std::io::Result<()>
-    // {
-
-    // }
-
-    // pub fn simplify_and_save_as() -> std::io::Result<()>
-    // {
-
-    // }
 
     ///
     /// Get a reference to the collection of all the pixels inside of the image
@@ -140,10 +102,7 @@ impl BitMap {
     /// Get a reference to the file name of the bitmap if it exists
     ///
     pub fn get_filename(&self) -> Option<&String> {
-        match self.filename.as_ref() {
-            Some(s) => Some(s),
-            None => None,
-        }
+        self.filename.as_ref()
     }
 
     ///
@@ -154,6 +113,62 @@ impl BitMap {
     fn get_index(&self, x: u32, y: u32) -> usize {
         (((self.height - y - 1) * self.width) + x) as usize
     }
+}
+
+///
+/// This block deals with saving the image
+/// 
+impl BitMap {
+
+    ///
+    /// Save the image to its original location
+    ///
+    /// Fail if no original location is linked to the current bitmap
+    ///
+    pub fn save(&self) -> Result<(), &'static str> {
+        match self.filename.as_ref() {
+            Some(f) => match self.save_as(f) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Error saving file to disk."),
+            },
+            None => Err("Couldn't save image because you didn't create the bitmap from an image"),
+        }
+    }
+
+    ///
+    /// Save the image to a new location on disk
+    ///
+    pub fn save_as(&self, filename: &str) -> std::io::Result<()> {
+        let file = File::create(self);
+        use std::io::Write;
+        let mut bit_stream = unsafe { file.to_bytes() };
+        let mut file = std::fs::File::create(filename)?;
+        file.write_all(bit_stream.as_mut_slice())?;
+        Ok(())
+    }
+
+    ///
+    /// Analyze the currently recorded pixels and try and find the lowest bit
+    /// count possible to save the images at.
+    ///
+    /// The bit depth will be:
+    /// if there are at most 2 colors present, 2 bit
+    /// if there are at most 16 colors present, 4 bit
+    /// if there are at most 256 colors present, 8 bit
+    /// if there are more then 256 colors and all alphas are 100, 24 bit
+    /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
+    ///
+    ///
+    #[allow(dead_code)]
+    pub fn simplify_and_save() -> std::io::Result<()>
+    {
+        Ok(())
+    }
+
+    // pub fn simplify_and_save_as() -> std::io::Result<()>
+    // {
+
+    // }
 }
 
 ///
@@ -208,7 +223,6 @@ impl BitMap {
             }
         }
 
-        // colors.reverse();
         Ok(BitMap::create(width, height, colors))
     }
 
@@ -255,15 +269,11 @@ impl BitMap {
     /// @param {Rgba} color to set pixel
     ///
     pub fn set_pixel(&mut self, x: u32, y: u32, color: Rgba) -> Result<(), &'static str> {
-        if y > self.height || x > self.width {
+        if y >= self.height || x >= self.width {
             return Err("Pixel is not contained inside of the image.");
         }
         // images are saved upside down, so to get the pixel we flip it right side up
         let index = self.get_index(x, y);
-        if index > (self.pixels.len() - 1) {
-            return Err("Pixel is not contained inside of the image.");
-        }
-
         self.pixels[index as usize] = color;
         Ok(())
     }
@@ -301,15 +311,11 @@ impl BitMap {
     /// @param {Rgba} color to use to replace the other color
     ///
     pub fn fill_region(&mut self, x: u32, y: u32, color: Rgba) -> Result<(), &'static str> {
-        if y > self.height || x > self.width {
+        if y >= self.height || x >= self.width {
             return Err("Pixel is not contained inside of the image.");
         }
         // images are saved upside down, so to get the pixel we flip it right side up
         let starting_index = self.get_index(x, y);
-        if starting_index > (self.pixels.len() - 1) {
-            return Err("Pixel is not contained inside of the image.");
-        }
-
         let width = self.width as usize;
         let old_color = self.pixels[starting_index];
         let mut visited = Vec::new();
@@ -333,7 +339,7 @@ impl BitMap {
                 unvisited.push(bottom_pixel);
             }
 
-            let index_in_image = index < self.pixels.len() && index > 0;
+            let index_in_image = index < self.pixels.len() - 1 && index > 0;
             // check the pixel to the right
             let right_pixel = index + 1;
             if index_in_image && index - 1 % width != 0 && !visited.contains(&right_pixel) {
@@ -538,4 +544,133 @@ impl std::fmt::Display for BitMap {
         }
         write!(f, "\n")
     }
+}
+
+
+
+#[cfg(test)]
+mod test {
+    use super::BitMap;
+    use super::Rgba;
+
+    #[test]
+    fn try_to_save_bitmap_made_in_memory() {
+        let result = BitMap::new(10, 10).save();
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn crop_image_bigger_then_image() {
+        let image = BitMap::new(10, 10);
+        let crop = image.crop(0, 0, 11, 11);
+        assert!(crop.is_err());
+    }
+
+    #[test]
+    fn crop_image_negatively() {
+        let image = BitMap::new(10, 10);
+        let crop = image.crop(5, 5, 0, 0);
+        assert!(crop.is_err());
+    }
+
+    #[test]
+    fn cant_set_pixel_outside_of_image() {
+        let mut image = BitMap::new(10, 10);
+        assert!(image.set_pixel(10, 10, Rgba::black()).is_err());
+        assert!(image.set_pixel(1000, 1000, Rgba::black()).is_err());
+    }
+
+    #[test]
+    fn cant_get_pixel_outside_of_image() {
+        let image = BitMap::new(10, 10);
+        assert!(image.get_pixel(10, 10).is_none());
+        assert!(image.get_pixel(20, 20).is_none());
+    }
+
+    #[test]
+    fn can_get_pixel_inside_of_image() {
+        let image = BitMap::new(100, 100);
+        assert!(image.get_pixel(0, 0).is_some());
+        assert!(image.get_pixel(0, 99).is_some());
+        assert!(image.get_pixel(99, 0).is_some());
+        assert!(image.get_pixel(99, 99).is_some());
+    }
+
+    #[test]
+    fn image_being_pasted_does_not_fit() {
+        let mut image = BitMap::new(10, 10);
+        let paste = BitMap::new(20, 20);
+        assert!(image.paste(&paste, 0, 0).is_err());
+    }
+
+    #[test]
+    fn image_correctly_pastes_image() {
+        let red = Rgba::rgb(255, 0, 0);
+        let green = Rgba::rgb(0, 255, 0);
+        let mut image = BitMap::new(2, 2);
+        let mut small_image = BitMap::new(2, 1);
+        small_image.set_pixel(0, 0, red).unwrap();
+        small_image.set_pixel(1, 0, green).unwrap();
+        let result = image.paste(&small_image, 0, 0);
+        assert!(result.is_ok());
+        assert!(image.get_pixel(0, 0).unwrap() == &red);
+        assert!(image.get_pixel(1, 0).unwrap() == &green);
+    }
+
+    #[test]
+    fn colored_image_correctly_converts_to_gray_scale() {
+        let mut image = BitMap::new(2, 2);
+        image.set_pixel(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
+        image.set_pixel(1, 0, Rgba::rgb(0, 255, 0)).unwrap();
+        image.set_pixel(0, 1, Rgba::rgb(0, 0, 255)).unwrap();
+        image.set_pixel(1, 1, Rgba::rgb(0, 0, 0)).unwrap();
+        image.color_to_gray();
+        assert!(image.get_pixel(0, 0).unwrap() == &Rgba::rgb(54, 54, 54));
+        assert!(image.get_pixel(1, 0).unwrap() == &Rgba::rgb(182, 182, 182));
+        assert!(image.get_pixel(0, 1).unwrap() == &Rgba::rgb(18, 18, 18));
+        assert!(image.get_pixel(1, 1).unwrap() == &Rgba::black());
+    }
+
+    #[test]
+    fn replace_all_color() {
+        let mut image = BitMap::new(10, 10);
+        image.replace_all_color(Rgba::white(), Rgba::black());
+        for x in 0..10
+        {
+            for y in 0..10
+            {
+                assert!(image.get_pixel(x, y).unwrap() == &Rgba::black());
+            }
+        }
+    }
+
+    #[test]
+    fn fill_region_out_side_of_image() {
+        let mut image = BitMap::new(10, 10);
+        assert!(image.fill_region(10, 10, Rgba::black()).is_err());
+    }
+
+    #[test]
+    fn fill_region_inside_of_image() {
+        let mut image = BitMap::new(10, 10);
+        for x in 0..10
+        {
+            for y in 0..10
+            {
+                if (x < 2 || x > 7) || (y < 2 || y > 7) {
+                    image.set_pixel(x, y, Rgba::black()).unwrap();
+                    println!("{} {}", x, y);
+                }
+            }
+        }
+        image.fill_region(5, 5, Rgba::black()).unwrap();
+        for x in 0..10
+        {
+            for y in 0..10
+            {
+                assert!(image.get_pixel(x, y).unwrap() == &Rgba::black());
+            }
+        }
+    }
+
 }
