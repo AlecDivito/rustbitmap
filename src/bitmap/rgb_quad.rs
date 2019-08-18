@@ -43,10 +43,16 @@ impl RgbQuad {
         bytes
     }
 
+    ///
+    /// Clone the colors
+    /// 
     pub fn clone_colors(&self) -> Vec<Rgba> {
         self.data.clone()
     }
 
+    ///
+    /// Get the number of colors stored in RgbQuad
+    /// 
     pub fn len(&self) -> usize {
         self.data.len()
     }
@@ -58,5 +64,28 @@ impl std::fmt::Display for RgbQuad {
             write!(f, "{}\n", c).unwrap();
         }
         write!(f, "")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::RgbQuad;
+
+    #[test]
+    fn rgb_quad_byte_size() {
+        let q = RgbQuad::empty();
+        assert_eq!(q.get_bytes_size(), 0);
+    }
+
+    #[test]
+    fn rgb_quad_clone_colors() {
+        let q = RgbQuad::empty();
+        assert_eq!(q.clone_colors().len(), 0);
+    }
+
+    #[test]
+    fn rgb_quad_colors_length() {
+        let q = RgbQuad::empty();
+        assert_eq!(q.len(), 0);
     }
 }
