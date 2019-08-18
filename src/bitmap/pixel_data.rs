@@ -22,7 +22,7 @@ impl PixelData {
         // TODO: Stop assuming that this is all colors
         PixelData {
             pixels: bitmap.get_pixels().clone(),
-            padding: PixelData::get_row_buffer_size(bitmap.get_width(), bit_depth),
+            padding: PixelData::get_row_padding_size(bitmap.get_width(), bit_depth),
             width: bitmap.get_width(),
             height: bitmap.get_height(),
             bit_depth,
@@ -42,7 +42,7 @@ impl PixelData {
         // supposed to be
         let mut pixels: Vec<Rgba> = Vec::new();
         let offset = file.get_off_bits();
-        let padding = PixelData::get_row_buffer_size(info.get_width(), bit_depth);
+        let padding = PixelData::get_row_padding_size(info.get_width(), bit_depth);
         let step = bit_depth.get_step_counter();
         let mut counter = 0;
 
@@ -133,8 +133,13 @@ impl PixelData {
     ///
     /// get the buffer byte size needed to add to each row to be able to be
     /// read from other bitmap applications
+    /// 
+    /// This tell you how much padding you need to add to the file when saving
+    /// it back to disk
+    /// 
+    /// Bitmaps must be divisible by 4
     ///
-    fn get_row_buffer_size(width: u32, bit_depth: BitDepth) -> u32 {
+    fn get_row_padding_size(width: u32, bit_depth: BitDepth) -> u32 {
         match bit_depth {
             BitDepth::AllColors => match (width * 3) % 4 {
                 1 => 3,
@@ -168,5 +173,48 @@ impl std::fmt::Display for PixelData {
             write!(f, "{}: {}\n", p, self.pixels[p as usize]).unwrap();
         }
         write!(f, "")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::PixelData;
+    use super::BitMap;
+    use super::BitDepth;
+    use super::Rgba;
+
+    #[test]
+    fn get_length_of_pixel_data_from_bitmap() {
+        let b = BitMap::new(10, 10);
+        let data = PixelData::from_bitmap(&b, BitDepth::AllColors);
+        assert_eq!(data.len(), 100);
+    }
+
+    #[test]
+    fn get_size_of_bytes_in_pixel_data() {
+        let b = BitMap::new(10, 10);
+        let data = PixelData::from_bitmap(&b, BitDepth::AllColors);
+        assert_eq!(data.get_bytes_size(), 320);
+        let b = BitMap::new(546, 879);
+        let data = PixelData::from_bitmap(&b, BitDepth::AllColors);
+        assert_eq!(data.get_bytes_size(), 1441560);
+    }
+
+    #[test]
+    fn get_pixel_data_as_rgb() {
+        let b = BitMap::new(10, 10);
+        let data = PixelData::from_bitmap(&b, BitDepth::AllColors);
+        let colors = data.as_rgba();
+        for c in &colors {
+            assert!(c == &Rgba::white());
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_data_from_outside_of_pixel_data_range() {
+        let b = BitMap::new(10, 10);
+        let data = PixelData::from_bitmap(&b, BitDepth::AllColors);
+        data[100];
     }
 }
