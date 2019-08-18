@@ -10,13 +10,12 @@ matrix:
     - rust: nightly
 
 before_script:
-  - export PATH="$PATH:$HOME/.cargo/bin"
-  - which rustfmt || cargo install rustfmt
+  - rustup component add rustfmt
 
 script:
-  - cargo fmt -- --check --verbose
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - cargo fmt --all -- --check
 
 addons:
   apt:
