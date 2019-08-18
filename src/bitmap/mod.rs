@@ -1,11 +1,11 @@
-mod util;
-mod file_header;
-mod info_header;
-mod pixel_data;
 mod bit_data;
-mod rgb_quad;
-mod file_data;
 mod bit_depth;
 mod file;
+mod file_data;
+mod file_header;
 pub mod image;
+mod info_header;
+mod pixel_data;
+mod rgb_quad;
 pub mod rgba;
+mod util;
