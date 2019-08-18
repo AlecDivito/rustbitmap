@@ -77,6 +77,7 @@ impl FileData {
     }
 }
 
+#[cfg(debug_assertions)]
 impl std::fmt::Display for FileData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {

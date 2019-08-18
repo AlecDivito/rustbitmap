@@ -160,6 +160,7 @@ impl InfoHeader {
     }
 }
 
+#[cfg(debug_assertions)]
 impl std::fmt::Display for InfoHeader {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(

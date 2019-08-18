@@ -159,6 +159,7 @@ impl std::cmp::PartialEq for Rgba {
     }
 }
 
+#[cfg(debug_assertions)]
 impl std::fmt::Display for Rgba {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(

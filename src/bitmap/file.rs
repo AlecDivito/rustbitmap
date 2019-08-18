@@ -109,8 +109,23 @@ impl std::fmt::Display for File {
             self.colors.len(),
             self.data.len()
         )
-        // write!(f, "File Header: {}\nInfo Header:{}\nColors ({}):\n{}Data ({}):\n{}",
-        //     self.file, self.info, self.colors.len(), self.colors,
-        //     self.data.len(), self.data)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::File;
+    use super::BitMap;
+
+    #[test]
+    fn get_number_of_bytes_after_creating_file_from_bitmap() {
+        let b = BitMap::new(2, 2);
+        let file = File::create(&b);
+        let pixel_bytes = 16;
+        let info_header_bytes = 40;
+        let color_bytes = 0;
+        let header_bytes = 14;
+        let bytes = pixel_bytes + info_header_bytes + color_bytes + header_bytes;
+        assert_eq!(unsafe { file.to_bytes().len() } , bytes);
     }
 }

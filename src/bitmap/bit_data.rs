@@ -137,6 +137,7 @@ impl BitData {
     // }
 }
 
+#[cfg(debug_assertions)]
 impl std::fmt::Display for BitData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         for p in 0..std::cmp::min(22, self.bytes.len()) as usize {

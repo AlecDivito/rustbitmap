@@ -526,6 +526,7 @@ impl std::cmp::PartialEq for BitMap {
     }
 }
 
+#[cfg(debug_assertions)]
 impl std::fmt::Display for BitMap {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.filename.is_some() {
