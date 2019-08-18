@@ -1,3 +1,4 @@
+use super::image::BitMap;
 use super::rgba::Rgba;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -29,30 +30,18 @@ impl BitDepth {
     ///
     /// Get a suggested bit depth depending on the colors contained inside of
     /// a array of colors
-    /// 
-    pub fn get_suggested_bit_depth(colors: &[Rgba]) -> BitDepth {
-        let mut contains_transparents = false;
-        let mut unique_colors = Vec::new();
-        for c in colors {
-            if c.is_transparent() {
-                contains_transparents = true;
-            }
-            if !unique_colors.contains(c) {
-                unique_colors.push(c.clone());
-            }
-            // TODO: Magic number???
-            if unique_colors.len() > 256 {
-                break;
-            }
-        }
-        match unique_colors.len() {
+    ///
+    pub fn get_suggested_bit_depth(bitmap: &BitMap) -> BitDepth {
+        let unique_colors = bitmap.get_all_unique_colors().len();
+        let contains_transparents = bitmap.is_image_transparent();
+        match unique_colors {
             0..=2 => BitDepth::BW,
             3..=16 => BitDepth::Color16Bit,
             17..=256 => BitDepth::Color256Bit,
             _ => match contains_transparents {
                 true => BitDepth::AllColorsAndShades,
-                false => BitDepth::AllColors
-            }
+                false => BitDepth::AllColors,
+            },
         }
     }
 }
@@ -67,5 +56,38 @@ impl std::fmt::Display for BitDepth {
             Self::AllColors => write!(f, "BitDepth: AllColors\n"),
             Self::AllColorsAndShades => write!(f, "BitDepth: AllColorsAndShades\n"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::BitMap;
+    use super::BitDepth;
+    use super::Rgba;
+
+    #[test]
+    fn get_correct_suggested_bit_depth() {
+        let mut bitmap = BitMap::new(256, 1);
+        assert!(BitDepth::BW == BitDepth::get_suggested_bit_depth(&bitmap));
+
+        for x in 0..2 {
+            bitmap.set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8)).unwrap();
+        }
+        assert!(BitDepth::Color16Bit == BitDepth::get_suggested_bit_depth(&bitmap));
+
+        for x in 0..15 {
+            bitmap.set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8)).unwrap();
+        }
+        assert!(BitDepth::Color16Bit == BitDepth::get_suggested_bit_depth(&bitmap));
+        bitmap.set_pixel(15, 0, Rgba::rgb(16, 16, 16)).unwrap();
+        assert!(BitDepth::Color256Bit == BitDepth::get_suggested_bit_depth(&bitmap));
+
+        for x in 0..bitmap.get_width() {
+            bitmap.set_pixel(x, 0, Rgba::rgb(x as u8, x as u8, x as u8)).unwrap();
+        }
+        assert!(BitDepth::Color256Bit == BitDepth::get_suggested_bit_depth(&bitmap));
+
+        bitmap.set_pixel(15, 0, Rgba::rgba(16, 16, 16, 0)).unwrap();
+        assert!(BitDepth::Color256Bit == BitDepth::get_suggested_bit_depth(&bitmap));
     }
 }

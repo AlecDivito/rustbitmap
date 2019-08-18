@@ -179,6 +179,18 @@ mod test {
     use super::Rgba;
 
     #[test]
+    fn is_pixel_transparent() {
+        let pixel = Rgba::rgba(0, 0, 0, 0);
+        assert_eq!(true, pixel.is_transparent());
+        let pixel1 = Rgba::rgba(0, 0, 0, 99);
+        assert_eq!(true, pixel1.is_transparent());
+        let pixel2 = Rgba::rgba(0, 0, 0, 100);
+        assert_eq!(false, pixel2.is_transparent());
+        let pixel3 = Rgba::rgba(0, 0, 0, 101);
+        assert_eq!(false, pixel3.is_transparent());
+    }
+
+    #[test]
     fn test_blur_sent_bad_factors() {
         let white = Rgba::white();
         let black = Rgba::black();

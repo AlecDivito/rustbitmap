@@ -1,7 +1,7 @@
 // use std::error::Error;
+use super::bit_depth::BitDepth;
 use super::file::File;
 use super::rgba::Rgba;
-use super::bit_depth::BitDepth;
 
 pub struct BitMap {
     /// file read from
@@ -54,7 +54,7 @@ impl BitMap {
     {
         // TODO: fix issue where pixels aren't in the correct position
         //       pixels need to be in a bitmap format or else the api wont work
-        //       
+        //
         // if width * height != pixels.len()
         // {
         //     return Err("The area must match the ")
@@ -117,6 +117,32 @@ impl BitMap {
     fn get_index(&self, x: u32, y: u32) -> usize {
         (((self.height - y - 1) * self.width) + x) as usize
     }
+
+    ///
+    /// Get all the unique colors from pixels, remove any duplicates
+    ///
+    pub fn get_all_unique_colors(&self) -> Vec<Rgba> {
+        let mut unique_colors = Vec::new();
+        for c in &self.pixels {
+            if !unique_colors.contains(c) {
+                unique_colors.push(c.clone());
+            }
+            // TODO: Magic number???
+            if unique_colors.len() > 256 {
+                break;
+            }
+        }
+        unique_colors
+    }
+
+    pub fn is_image_transparent(&self) -> bool {
+        for c in &self.pixels {
+            if c.is_transparent() {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 ///
@@ -143,14 +169,11 @@ impl BitMap {
     ///
     pub fn save_as(&self, filename: &str) -> Result<(), &'static str> {
         // check to see if any pixels are transparent
-        let mut bit_depth = BitDepth::AllColors;
-        for c in &self.pixels {
-            if c.is_transparent() {
-                bit_depth = BitDepth::AllColorsAndShades;
-                break;
-            }
-        }
-
+        let bit_depth = if self.is_image_transparent() {
+            BitDepth::AllColorsAndShades
+        } else {
+            BitDepth::AllColors
+        };
         match self.save_as_file(filename, bit_depth) {
             Ok(_) => Ok(()),
             Err(_) => Err("Error saving file to disk."),
@@ -169,7 +192,7 @@ impl BitMap {
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
     pub fn simplify_and_save(&self) -> Result<(), &'static str> {
-        let bit_depth = BitDepth::get_suggested_bit_depth(&self.pixels);
+        let bit_depth = BitDepth::get_suggested_bit_depth(self);
 
         match self.filename.as_ref() {
             Some(f) => match self.save_as_file(f, bit_depth) {
@@ -191,9 +214,8 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), &'static str>
-    {
-        let bit_depth = BitDepth::get_suggested_bit_depth(&self.pixels);
+    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), &'static str> {
+        let bit_depth = BitDepth::get_suggested_bit_depth(self);
 
         match self.save_as_file(filename, bit_depth) {
             Ok(_) => Ok(()),
@@ -203,7 +225,7 @@ impl BitMap {
 
     ///
     /// Actually save the file using the given filename and bit depth
-    /// 
+    ///
     fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> std::io::Result<()> {
         let file = File::create(self, bit_depth);
         use std::io::Write;
@@ -551,7 +573,7 @@ impl BitMap {
 
     ///
     /// Rotate the entire image right by 90 degrees
-    /// 
+    ///
     pub fn rotate_right(&mut self) {
         let mut new_pixels = Vec::with_capacity(self.get_size() as usize);
         for x in (0..self.width).rev() {
@@ -568,7 +590,7 @@ impl BitMap {
 
     ///
     /// Rotate the entire image left by 90 degrees
-    /// 
+    ///
     pub fn rotate_left(&mut self) {
         let mut new_pixels = Vec::with_capacity(self.get_size() as usize);
         for x in 0..self.width {
@@ -582,7 +604,6 @@ impl BitMap {
         self.width = self.height;
         self.height = temp_width;
     }
-
 }
 
 impl std::cmp::PartialEq for BitMap {
@@ -629,6 +650,25 @@ impl std::fmt::Display for BitMap {
 mod test {
     use super::BitMap;
     use super::Rgba;
+
+    #[test]
+    fn get_all_unique_colors() {
+        let result = BitMap::new(100, 100).get_all_unique_colors();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn is_image_transparent() {
+        let mut test1 = BitMap::new(10, 10);
+        test1.set_pixel(0, 0, Rgba::rgba(0, 0, 0, 0)).unwrap();
+        assert_eq!(true, test1.is_image_transparent());
+
+        test1.set_pixel(0, 0, Rgba::rgba(0, 0, 0, 99)).unwrap();
+        assert_eq!(true, test1.is_image_transparent());
+
+        let test2 = BitMap::new(10, 10);
+        assert_eq!(false, test2.is_image_transparent());
+    }
 
     #[test]
     fn try_to_save_bitmap_made_in_memory() {
