@@ -25,6 +25,10 @@ pub struct BitData {
 }
 
 impl BitData {
+
+    ///
+    /// Create bit data from stream of bytes
+    /// 
     pub fn stream(
         bit_stream: &[u8],
         file: &FileHeader,
@@ -47,12 +51,16 @@ impl BitData {
         }
     }
 
+    ///
+    /// Pass the bit data back as a stream of bytes
+    /// 
     pub fn as_bytes(&self) -> Vec<u8> {
         self.bytes.clone()
     }
 
     ///
-    ///
+    /// Convert bits into array of colors
+    /// 
     pub fn as_rgba(&self) -> Vec<Rgba> {
         let mut pixels = Vec::new();
         let step = self.bit_depth.get_step_counter();
@@ -127,26 +135,15 @@ impl BitData {
         self.bytes.len() as u32
     }
 
-    // pub fn get_bit_padding(&self) -> u32
-    // {
-    //     match self.width * self.bit_depth.get_step_counter() % 8
-    //     {
-    //         0 => 0,
-    //         _ => 8 - (self.width % 8)
-    //     }
-    // }
 }
 
 #[cfg(debug_assertions)]
 impl std::fmt::Display for BitData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for p in 0..std::cmp::min(22, self.bytes.len()) as usize {
+        for p in ((self.bytes.len() - 5)..self.bytes.len()).rev()
+        {
             write!(f, "{}:\t{:#b}\n", p, self.bytes[p]).unwrap();
         }
-        // for p in ((self.bytes.len() - 5)..self.bytes.len()).rev()
-        // {
-        //     write!(f, "{}:\t{:#b}\n", p, self.bytes[p]).unwrap();
-        // }
         write!(f, "")
     }
 }

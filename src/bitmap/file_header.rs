@@ -50,7 +50,7 @@ impl FileHeader {
     }
 
     ///
-    /// Get the 
+    /// Get FileHeader as a array of bytes
     /// 
     pub fn as_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
@@ -70,20 +70,9 @@ impl FileHeader {
         self.size
     }
 
-    // pub fn set_file_size(&mut self, size: u32)
-    // {
-    //     self.size = size;
-    // }
-
     pub fn get_off_bits(&self) -> u32 {
         self.off_bits
     }
-
-    // pub fn set_offset(&mut self, info: &InfoHeader, colors: &RgbQuad)
-    // {
-    //     self.off_bits = self.get_byte_size() + info.get_info_size()
-    //         + colors.get_bytes_size();
-    // }
 }
 
 impl std::fmt::Display for FileHeader {
