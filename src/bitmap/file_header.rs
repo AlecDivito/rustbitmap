@@ -20,8 +20,8 @@ impl FileHeader {
     /// @return {FileHeader}
     ///
     pub fn new(data_size: u32, color_size: u32, info_size: u32) -> FileHeader {
-        let size = data_size + color_size + info_size + 14;
-        let off_bits = info_size + 14;
+        let off_bits = color_size + info_size + 14;
+        let size = data_size + off_bits;
         FileHeader {
             bitmap_type: ['B', 'M'],
             size,

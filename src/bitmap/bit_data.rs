@@ -55,8 +55,7 @@ impl BitData {
     /// Create bit data from a bitmap
     ///
     pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> BitData {
-        let mut unique_colors = bitmap.get_all_unique_colors().clone();
-        unique_colors.push(Rgba::rgb(0, 0, 0));
+        let unique_colors = bitmap.get_all_unique_colors().clone();
         let step = bit_depth.get_step_counter();
 
         // figure out how much padding is on each row
@@ -85,7 +84,9 @@ impl BitData {
             let color_index = unique_colors.iter().position(|&c| c == pixel).unwrap() as u8;
             counter += step as u32;
             shift = counter % 8;
-            byte = byte << step;
+            if step != 8 {
+                byte = byte << step;
+            }
             // if bit_depth is a BW then we want to push the bit onto the byte
             byte += color_index;
 

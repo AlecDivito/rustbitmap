@@ -31,25 +31,40 @@ fn main() {
     // bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
     // bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
 
-    let pixels = vec![Rgba::rgb(127, 127, 127), Rgba::white(), Rgba::black(), Rgba::rgb(255, 0, 0)];
-    let mut bitmap = BitMap::create(4, 1, pixels);
-    bitmap.save_as("new-0.bmp").unwrap();
-    bitmap.rotate_right();
-    bitmap.save_as("new-1.bmp").unwrap();
-    bitmap.rotate_right();
-    bitmap.save_as("new-2.bmp").unwrap();
-    bitmap.rotate_right();
-    bitmap.save_as("new-3.bmp").unwrap();
-    bitmap.rotate_right();
-    bitmap.save_as("new-4.bmp").unwrap();
-    bitmap.rotate_right();
-    bitmap.rotate_right();
-    bitmap.rotate_right();
+    // let pixels = vec![Rgba::rgb(127, 127, 127), Rgba::white(), Rgba::black(), Rgba::rgb(255, 0, 0)];
+    // let mut bitmap = BitMap::create(4, 1, pixels);
+    // bitmap.save_as("new-0.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("new-1.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("new-2.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("new-3.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.save_as("new-4.bmp").unwrap();
+    // bitmap.rotate_right();
+    // bitmap.rotate_right();
+    // bitmap.rotate_right();
 
-    bitmap.rotate_left();
-    bitmap.rotate_left();
-    bitmap.rotate_left();
-    bitmap.save_as("new-5.bmp").unwrap();
+    // bitmap.rotate_left();
+    // bitmap.rotate_left();
+    // bitmap.rotate_left();
+    // bitmap.save_as("new-5.bmp").unwrap();
+
+    let red = Rgba::rgb(255, 0, 0);
+    let blue = Rgba::rgb(0, 0, 255);
+    let green = Rgba::rgb(0, 255, 0);
+
+    let mut b = BitMap::new(2, 2);
+    b.set_pixel(0, 0, Rgba::white()).unwrap();
+    b.set_pixel(1, 0, red).unwrap();
+    b.set_pixel(0, 1, blue).unwrap();
+    b.set_pixel(1, 1, green).unwrap();
+    // b.fast_resize_by(25.0);
+    // b.color_to_gray();
+    b.simplify_and_save_as("hahahaha_stay_in_the_light.bmp")
+        .unwrap();
+    b.save_as("hahahaha_stay_in_the_light2.bmp").unwrap();
 
     // let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.rotate_right();
@@ -79,7 +94,6 @@ fn main() {
     //     .paste(&new_bits, bitmap.get_width() - new_bits.get_width(), 0)
     //     .unwrap();
     // bitmap.save_as("./before-temp.bmp").unwrap();
-
 
     // Possibilities to add
     // simplify_and_save()
