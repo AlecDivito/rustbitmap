@@ -87,7 +87,7 @@ impl BitData {
             if step != 8 {
                 byte = byte << step;
             }
-            // if bit_depth is a BW then we want to push the bit onto the byte
+            // if bit_depth is a Color2Bit then we want to push the bit onto the byte
             byte += color_index;
 
             // push byte into data
@@ -208,14 +208,14 @@ impl BitData {
 
     ///
     /// Get the total length of bit data
-    /// 
+    ///
     pub fn len(&self) -> usize {
         self.bytes.len()
     }
 
     ///
     /// Get the size of bit data in bytes
-    /// 
+    ///
     pub fn get_bytes_size(&self) -> u32 {
         self.bytes.len() as u32
     }
@@ -241,11 +241,11 @@ mod test {
     #[test]
     fn get_length_of_bit_data_length_2_bit_depth() {
         let b = BitMap::new(10, 10);
-        let data = BitData::from_bitmap(&b, BitDepth::BW);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
         assert_eq!(data.len(), 43);
         assert_eq!(data.get_bytes_size(), 43);
         let b = BitMap::new(1, 1);
-        let data = BitData::from_bitmap(&b, BitDepth::BW);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
         assert_eq!(data.len(), 4);
         assert_eq!(data.get_bytes_size(), 4);
     }
@@ -277,7 +277,7 @@ mod test {
     #[test]
     fn get_bit_data_as_rgb_bit_depth_2() {
         let b = BitMap::new(10, 10);
-        let data = BitData::from_bitmap(&b, BitDepth::BW);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
         let colors = data.as_rgba();
         for i in 0..b.get_size() {
             assert!(&colors[i as usize] == &Rgba::white());
@@ -285,7 +285,7 @@ mod test {
 
         let mut b = BitMap::new(2, 1);
         b.set_pixel(0, 0, Rgba::black()).unwrap();
-        let data = BitData::from_bitmap(&b, BitDepth::BW);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
         let colors = data.as_rgba();
         assert!(&colors[0] == &Rgba::black());
         assert!(&colors[1] == &Rgba::white());
@@ -325,8 +325,8 @@ mod test {
     #[test]
     fn get_bit_data_as_bytes() {
         let b = BitMap::new(10, 10);
-        
-        let data = BitData::from_bitmap(&b, BitDepth::BW);
+
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
         for i in 0..data.as_bytes().len() {
             assert!(data.as_bytes()[i] == 0);
         }

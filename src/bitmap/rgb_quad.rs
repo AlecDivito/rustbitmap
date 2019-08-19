@@ -15,7 +15,7 @@ impl RgbQuad {
     ///
     pub fn stream(bit_stream: &[u8], file: &FileHeader, info: &InfoHeader) -> RgbQuad {
         let mut data = Vec::new();
-        let offset = file.get_byte_size() + info.get_info_size();
+        let offset = file.get_byte_size() + info.get_byte_size();
 
         for index in 0..info.get_colors_used() {
             let i: usize = ((index * 4) + offset) as usize;
@@ -36,7 +36,7 @@ impl RgbQuad {
     ///
     pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> RgbQuad {
         match bit_depth {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => RgbQuad {
+            BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => RgbQuad {
                 data: bitmap.get_all_unique_colors(),
             },
             _ => RgbQuad::empty(),

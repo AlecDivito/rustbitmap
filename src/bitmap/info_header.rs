@@ -44,7 +44,7 @@ impl InfoHeader {
     ///
     pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader {
         let colors_used = match bit_depth {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => {
+            BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => {
                 bitmap.get_all_unique_colors().len()
             }
             _ => 0,
@@ -126,7 +126,7 @@ impl InfoHeader {
     ///
     /// Get the size of the information header in bytes
     ///
-    pub fn get_info_size(&self) -> u32 {
+    pub fn get_byte_size(&self) -> u32 {
         self.size
     }
 
@@ -135,7 +135,7 @@ impl InfoHeader {
     ///
     pub fn get_bit_depth(&self) -> Option<BitDepth> {
         match self.bit_depth {
-            1 => Some(BitDepth::BW),
+            1 => Some(BitDepth::Color2Bit),
             4 => Some(BitDepth::Color16Bit),
             8 => Some(BitDepth::Color256Bit),
             24 => Some(BitDepth::AllColors),
@@ -201,7 +201,7 @@ mod test {
     fn get_info_size_in_bytes_after_bitmap_conversion() {
         let b = BitMap::new(10, 10);
         let data = InfoHeader::from(&b, BitDepth::AllColors);
-        assert_eq!(data.get_info_size(), 40);
+        assert_eq!(data.get_byte_size(), 40);
     }
 
     #[test]

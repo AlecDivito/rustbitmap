@@ -25,9 +25,9 @@ impl BitMap {
         let file = File::read(filename).unwrap();
         Some(BitMap {
             filename: Some(String::from(filename)),
-            width: file.get_info_header().get_width(),
-            height: file.get_info_header().get_height(),
-            pixels: file.get_pixels().as_rgba(),
+            width: file.get_width(),
+            height: file.get_height(),
+            pixels: file.get_bitmap_as_pixels(),
         })
     }
 
@@ -103,6 +103,13 @@ impl BitMap {
     }
 
     ///
+    /// Get the estimated file size in bytes
+    /// 
+    pub fn get_estimated_file_size_in_bytes(&self) -> u32 {
+        File::create(self, BitDepth::AllColors).calculate_file_size()
+    }
+
+    ///
     /// Get a reference to the file name of the bitmap if it exists
     ///
     pub fn get_filename(&self) -> Option<&String> {
@@ -135,6 +142,9 @@ impl BitMap {
         unique_colors
     }
 
+    ///
+    /// Check if there is at least one pixel that it translucent
+    /// 
     pub fn is_image_transparent(&self) -> bool {
         for c in &self.pixels {
             if c.is_transparent() {

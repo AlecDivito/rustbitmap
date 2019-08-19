@@ -24,7 +24,7 @@ impl FileData {
     ) -> Option<FileData> {
         match info.get_bit_depth() {
             Some(b) => match b {
-                BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => Some(
+                BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => Some(
                     FileData::Bits(BitData::stream(bit_stream, file, info, b, colors)),
                 ),
                 BitDepth::AllColors | BitDepth::AllColorsAndShades => Some(FileData::Pixels(
@@ -40,7 +40,7 @@ impl FileData {
     ///
     pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> FileData {
         match bit_depth {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => {
+            BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => {
                 FileData::Bits(BitData::from_bitmap(bitmap, bit_depth))
             }
             _ => FileData::Pixels(PixelData::from_bitmap(bitmap, bit_depth)),
