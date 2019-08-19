@@ -92,7 +92,10 @@ impl std::fmt::Display for RgbQuad {
 
 #[cfg(test)]
 mod test {
+    use super::BitDepth;
+    use super::BitMap;
     use super::RgbQuad;
+    use super::Rgba;
 
     #[test]
     fn rgb_quad_byte_size() {
@@ -110,5 +113,30 @@ mod test {
     fn rgb_quad_colors_length() {
         let q = RgbQuad::empty();
         assert_eq!(q.len(), 0);
+    }
+
+    #[test]
+    fn crating_a_rgb_quad_from_bitmap() {
+        let mut b = BitMap::new(2, 2);
+
+        let quad = RgbQuad::from(&b, BitDepth::Color2Bit);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        b.set_pixel(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
+        b.set_pixel(1, 0, Rgba::rgb(0, 0, 255)).unwrap();
+        b.set_pixel(0, 1, Rgba::black()).unwrap();
+        let quad = RgbQuad::from(&b, BitDepth::Color16Bit);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        b.resize_by(20.0);
+        let quad = RgbQuad::from(&b, BitDepth::AllColors);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        let quad = RgbQuad::from(&b, BitDepth::AllColorsAndShades);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        b.color_to_gray();
+        let quad = RgbQuad::from(&b, BitDepth::Color256Bit);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
     }
 }
