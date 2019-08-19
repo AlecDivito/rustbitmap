@@ -1,6 +1,6 @@
 use super::image::BitMap;
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BitDepth {
     Color2Bit = 1,
     Color16Bit = 4,

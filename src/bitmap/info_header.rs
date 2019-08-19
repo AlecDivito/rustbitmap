@@ -198,6 +198,41 @@ mod test {
     use super::InfoHeader;
 
     #[test]
+    fn get_correct_bit_depth() {
+        let b = BitMap::new(10, 10);
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::Color2Bit)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::Color2Bit
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::Color16Bit)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::Color16Bit
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::Color256Bit)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::Color256Bit
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::AllColors)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::AllColors
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::AllColorsAndShades)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::AllColorsAndShades
+        );
+    }
+
+    #[test]
     fn get_info_size_in_bytes_after_bitmap_conversion() {
         let b = BitMap::new(10, 10);
         let data = InfoHeader::from(&b, BitDepth::AllColors);

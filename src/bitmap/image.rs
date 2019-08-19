@@ -104,7 +104,7 @@ impl BitMap {
 
     ///
     /// Get the estimated file size in bytes
-    /// 
+    ///
     pub fn get_estimated_file_size_in_bytes(&self) -> u32 {
         File::create(self, BitDepth::AllColors).calculate_file_size()
     }
@@ -144,7 +144,7 @@ impl BitMap {
 
     ///
     /// Check if there is at least one pixel that it translucent
-    /// 
+    ///
     pub fn is_image_transparent(&self) -> bool {
         for c in &self.pixels {
             if c.is_transparent() {
