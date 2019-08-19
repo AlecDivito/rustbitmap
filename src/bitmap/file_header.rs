@@ -66,10 +66,6 @@ impl FileHeader {
         14
     }
 
-    pub fn _get_size(&self) -> u32 {
-        self.size
-    }
-
     pub fn get_off_bits(&self) -> u32 {
         self.off_bits
     }
@@ -88,4 +84,16 @@ impl std::fmt::Display for FileHeader {
             self.off_bits
         )
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::FileHeader;
+
+    #[test]
+    fn file_header_byte_size() {
+        let header = FileHeader::new(10, 10, 10);
+        assert_eq!(header.as_bytes().len(), header.get_byte_size() as usize);
+    }
+
 }
