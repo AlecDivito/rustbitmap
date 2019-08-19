@@ -42,7 +42,13 @@ impl InfoHeader {
     ///
     /// Create a header based on a bitmap.
     ///
-    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader {
+    pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader {
+        let colors_used = match bit_depth {
+            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => {
+                bitmap.get_all_unique_colors().len()
+            }
+            _ => 0,
+        } as u32;
         InfoHeader {
             size: 40,
             width: bitmap.get_width(),
@@ -53,7 +59,7 @@ impl InfoHeader {
             size_image: 0,
             x_pixels_per_meter: 0,
             y_pixels_per_meter: 0,
-            colors_used: 0,
+            colors_used,
             colors_important: 0,
         }
     }
@@ -194,14 +200,14 @@ mod test {
     #[test]
     fn get_info_size_in_bytes_after_bitmap_conversion() {
         let b = BitMap::new(10, 10);
-        let data = InfoHeader::from_bitmap(&b, BitDepth::AllColors);
+        let data = InfoHeader::from(&b, BitDepth::AllColors);
         assert_eq!(data.get_info_size(), 40);
     }
 
     #[test]
     fn get_width_and_height_after_bitmap_conversion() {
         let b = BitMap::new(10, 10);
-        let data = InfoHeader::from_bitmap(&b, BitDepth::AllColors);
+        let data = InfoHeader::from(&b, BitDepth::AllColors);
         assert_eq!(data.get_width(), 10);
         assert_eq!(data.get_height(), 10);
     }
@@ -209,7 +215,7 @@ mod test {
     #[test]
     fn get_colors_used_after_bitmap_conversion_24_bit() {
         let b = BitMap::new(10, 10);
-        let data = InfoHeader::from_bitmap(&b, BitDepth::AllColors);
+        let data = InfoHeader::from(&b, BitDepth::AllColors);
         assert_eq!(data.get_colors_used(), 0);
     }
 }

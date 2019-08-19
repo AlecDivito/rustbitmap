@@ -228,6 +228,7 @@ impl BitMap {
     ///
     fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> std::io::Result<()> {
         let file = File::create(self, bit_depth);
+        println!("{}", file);
         use std::io::Write;
         let mut bit_stream = unsafe { file.to_bytes() };
         let mut file = std::fs::File::create(filename)?;

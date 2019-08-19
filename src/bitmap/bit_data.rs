@@ -55,16 +55,20 @@ impl BitData {
     /// Create bit data from a bitmap
     ///
     pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> BitData {
-        let unique_colors = bitmap.get_all_unique_colors();
+        let mut unique_colors = bitmap.get_all_unique_colors().clone();
+        unique_colors.push(Rgba::rgb(0, 0, 0));
+        let step = bit_depth.get_step_counter();
 
-        // TODO: Figure out how to get the byte width and byte_padding
-        // when the image size is NOT divisible by 4
-        let bit_padding = BitData::get_bit_row_padding(bitmap.get_width(), bit_depth);
-        let byte_width = match bit_depth {
-            BitDepth::BW => (bitmap.get_width() + bit_padding) / 8,
-            BitDepth::Color16Bit => (bitmap.get_width() * 4 + bit_padding) / 8,
-            BitDepth::Color256Bit => bitmap.get_width(),
+        // figure out how much padding is on each row
+        // this is needed because for each row of a bmp image needs to finish
+        // with a width of bytes that is divisible by 4. Here we are figuring out
+        // how much bit padding and byte padding we need.
+        let bit_width = bitmap.get_width() * bit_depth.get_step_counter();
+        let bit_padding = match bit_width % 8 {
+            0 => 0,
+            _ => 8 - (bit_width % 8),
         };
+        let byte_width = (bit_width + bit_padding) / 8;
         let byte_padding = match byte_width % 4 {
             0 => 0,
             _ => 4 - (byte_width % 4),
@@ -72,57 +76,54 @@ impl BitData {
         let mut bytes =
             Vec::with_capacity(((byte_width + byte_padding) * bitmap.get_height()) as usize);
 
-        let mut color_index: u8 = 0;
-        // let mut counter = 0;
-        // let mut shift = 0;
+        let step = step as u8;
+        let mut byte: u8 = 0;
+        let mut counter: u32 = 0;
+        let mut shift: u32 = 0;
         for i in 0..bitmap.get_pixels().len() {
             let pixel = bitmap.get_pixels()[i];
-            let color_index = unique_colors.iter().position(|&c| c == pixel).unwrap();
+            let color_index = unique_colors.iter().position(|&c| c == pixel).unwrap() as u8;
+            counter += step as u32;
+            shift = counter % 8;
+            byte = byte << step;
+            // if bit_depth is a BW then we want to push the bit onto the byte
+            byte += color_index;
 
-            // counter += 1;
-            // shift = counter % 8;
-            // this needs to change
-            // let step = if bitmap.get_pixels()[i].is_white() { 1 } else { 0 };
-            // byte = byte << 1;
-            // byte += step;
+            // push byte into data
+            if shift == 0 && i != 0 && bit_width >= 8 {
+                bytes.push(byte);
+                byte = 0;
+            }
+            // add padding to row
+            if counter % bitmap.get_width() == 0 && i != 0 {
+                if bit_padding != 0 {
+                    byte = byte << bit_padding;
+                    bytes.push(byte);
+                    byte = 0;
+                    counter = 0;
+                }
 
-            // if shift == 0 && i != 0 && bitmap.get_width() >= 8
-            // {
-            //     bytes.push(byte);
-            //     byte = 0;
-            // }
-            // if counter % bitmap.get_width() == 0 && i != 0
-            // {
-            //     if bit_padding != 0
-            //     {
-            //         byte = byte << bit_padding;
-            //         bytes.push(byte);
-            //         byte = 0;
-            //         counter = 0;
-            //     }
-
-            //     for _ in 0..byte_padding
-            //     {
-            //         bytes.push(0);
-            //     }
-            // }
+                for _ in 0..byte_padding {
+                    bytes.push(0);
+                }
+            }
         }
-        // if shift != 0
-        // {
-        //     byte = byte << (8-shift);
-        //     bytes.push(byte);
-        // }
-        // for _ in 0..byte_padding
-        // {
-        //     bytes.push(0);
-        // }
+        if shift != 0 {
+            byte = byte << (8 - shift);
+            bytes.push(byte);
+        }
+        if bytes.len() % 4 != 0 {
+            for _ in 0..byte_padding {
+                bytes.push(0);
+            }
+        }
 
         BitData {
             width: bitmap.get_width(),
             height: bitmap.get_height(),
             bit_depth,
             colors: unique_colors,
-            bytes: Vec::new(),
+            bytes,
         }
     }
 
@@ -202,40 +203,6 @@ impl BitData {
         pixels
     }
 
-    fn get_bit_row_padding(width: u32, bit_depth: BitDepth) -> u32 {
-        match bit_depth {
-            BitDepth::BW => match width {
-                0 => 0,
-                _ => 8 - (width % 8),
-            },
-            BitDepth::Color16Bit => {
-                if (width * 4) % 2 == 0 {
-                    0
-                } else {
-                    4
-                }
-            }
-            _ => 0,
-        }
-    }
-
-    fn get_byte_width(width: u32, bit_padding: u32, bit_data: BitDepth) -> u32 {
-        match bit_depth {
-            BitDepth::BW => match width {
-                0 => 0,
-                _ => 8 - (width % 8),
-            },
-            BitDepth::Color16Bit => {
-                if (width * 2) % 2 == 0 {
-                    0
-                } else {
-                    4
-                }
-            }
-            _ => width,
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.bytes.len()
     }
@@ -248,7 +215,7 @@ impl BitData {
 #[cfg(debug_assertions)]
 impl std::fmt::Display for BitData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for p in ((self.bytes.len() - 5)..self.bytes.len()).rev() {
+        for p in (0..self.bytes.len()).rev() {
             write!(f, "{}:\t{:#b}\n", p, self.bytes[p]).unwrap();
         }
         write!(f, "")

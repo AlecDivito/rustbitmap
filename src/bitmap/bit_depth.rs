@@ -62,7 +62,7 @@ impl std::fmt::Display for BitDepth {
 mod test {
     use super::BitDepth;
     use super::BitMap;
-    use super::Rgba;
+    use crate::bitmap::rgba::Rgba;
 
     #[test]
     fn get_correct_suggested_bit_depth() {
