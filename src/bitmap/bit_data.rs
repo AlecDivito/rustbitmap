@@ -96,13 +96,13 @@ impl BitData {
                 byte = 0;
             }
             // add padding to row
-            if counter % bitmap.get_width() == 0 && i != 0 {
+            if counter % bit_width == 0 && i != 0 {
                 if bit_padding != 0 {
                     byte = byte << bit_padding;
                     bytes.push(byte);
-                    byte = 0;
-                    counter = 0;
                 }
+                byte = 0;
+                counter = 0;
 
                 for _ in 0..byte_padding {
                     bytes.push(0);

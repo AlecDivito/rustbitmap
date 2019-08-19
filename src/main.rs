@@ -57,10 +57,10 @@ fn main() {
 
     let mut b = BitMap::new(2, 2);
     b.set_pixel(0, 0, Rgba::white()).unwrap();
-    b.set_pixel(1, 0, red).unwrap();
-    b.set_pixel(0, 1, blue).unwrap();
-    b.set_pixel(1, 1, green).unwrap();
-    // b.fast_resize_by(25.0);
+    b.set_pixel(1, 0, /*Rgba::black()*/ red).unwrap();
+    b.set_pixel(0, 1, /*Rgba::black()*/ blue).unwrap();
+    b.set_pixel(1, 1, /*Rgba::white()*/ green).unwrap();
+    b.resize_by(25.0);
     // b.color_to_gray();
     b.simplify_and_save_as("hahahaha_stay_in_the_light.bmp")
         .unwrap();

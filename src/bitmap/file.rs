@@ -102,13 +102,13 @@ impl std::fmt::Display for File {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "File Header: {}\nInfo Header:{}\nColors ({})\n{}Bytes:({})\n{}",
+            "File Header: {}\nInfo Header:{}\nColors ({})\n{}Bytes:({})\n",
             self.file,
             self.info,
             self.colors.len(),
             self.colors,
             self.data.len(),
-            self.data
+            // self.data
         )
     }
 }
