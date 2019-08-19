@@ -818,5 +818,4 @@ mod test {
         assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::white());
         assert!(bitmap.get_pixel(0, 0).unwrap() == &gray);
     }
-
 }
