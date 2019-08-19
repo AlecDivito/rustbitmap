@@ -95,5 +95,4 @@ mod test {
         let header = FileHeader::new(10, 10, 10);
         assert_eq!(header.as_bytes().len(), header.get_byte_size() as usize);
     }
-
 }

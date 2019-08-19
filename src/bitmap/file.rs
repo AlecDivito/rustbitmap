@@ -150,5 +150,4 @@ mod test {
             file.calculate_file_size() as usize
         );
     }
-
 }
