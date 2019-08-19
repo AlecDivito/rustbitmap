@@ -1,4 +1,6 @@
+use super::bit_depth::BitDepth;
 use super::file_header::FileHeader;
+use super::image::BitMap;
 use super::info_header::InfoHeader;
 use super::rgba::Rgba;
 
@@ -7,6 +9,10 @@ pub struct RgbQuad {
 }
 
 impl RgbQuad {
+    ///
+    /// From a stream of bytes, read in a list of colors used to render the
+    /// bitmap image
+    ///
     pub fn stream(bit_stream: &[u8], file: &FileHeader, info: &InfoHeader) -> RgbQuad {
         let mut data = Vec::new();
         let offset = file.get_byte_size() + info.get_info_size();
@@ -24,12 +30,28 @@ impl RgbQuad {
         RgbQuad { data }
     }
 
-    pub fn get_bytes_size(&self) -> u32 {
-        4 * self.data.len() as u32
+    ///
+    /// From a bitmap, create a list of unique colors that are used to create
+    /// the bitmap
+    ///
+    pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> RgbQuad {
+        match bit_depth {
+            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => RgbQuad {
+                data: bitmap.get_all_unique_colors(),
+            },
+            _ => RgbQuad::empty(),
+        }
     }
 
-    pub fn empty() -> RgbQuad {
+    ///
+    /// Create a empty rgb quad
+    ///
+    fn empty() -> RgbQuad {
         RgbQuad { data: Vec::new() }
+    }
+
+    pub fn get_bytes_size(&self) -> u32 {
+        4 * self.data.len() as u32
     }
 
     pub fn as_bytes(&self) -> Vec<u8> {

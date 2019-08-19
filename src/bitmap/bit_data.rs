@@ -1,5 +1,6 @@
 use super::bit_depth::BitDepth;
 use super::file_header::FileHeader;
+use super::image::BitMap;
 use super::info_header::InfoHeader;
 use super::rgb_quad::RgbQuad;
 use super::rgba::Rgba;
@@ -46,6 +47,83 @@ impl BitData {
             height: info.get_height(),
             bit_depth,
             colors: colors.clone_colors(),
+            bytes,
+        }
+    }
+
+    ///
+    /// Create bit data from a bitmap
+    ///
+    pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> BitData {
+        let unique_colors = bitmap.get_all_unique_colors().clone();
+        let step = bit_depth.get_step_counter();
+
+        // figure out how much padding is on each row
+        // this is needed because for each row of a bmp image needs to finish
+        // with a width of bytes that is divisible by 4. Here we are figuring out
+        // how much bit padding and byte padding we need.
+        let bit_width = bitmap.get_width() * bit_depth.get_step_counter();
+        let bit_padding = match bit_width % 8 {
+            0 => 0,
+            _ => 8 - (bit_width % 8),
+        };
+        let byte_width = (bit_width + bit_padding) / 8;
+        let byte_padding = match byte_width % 4 {
+            0 => 0,
+            _ => 4 - (byte_width % 4),
+        };
+        let mut bytes =
+            Vec::with_capacity(((byte_width + byte_padding) * bitmap.get_height()) as usize);
+
+        let step = step as u8;
+        let mut byte: u8 = 0;
+        let mut counter: u32 = 0;
+        let mut shift: u32 = 0;
+        for i in 0..bitmap.get_pixels().len() {
+            let pixel = bitmap.get_pixels()[i];
+            let color_index = unique_colors.iter().position(|&c| c == pixel).unwrap() as u8;
+            counter += step as u32;
+            shift = counter % 8;
+            if step != 8 {
+                byte = byte << step;
+            }
+            // if bit_depth is a BW then we want to push the bit onto the byte
+            byte += color_index;
+
+            // push byte into data
+            if shift == 0 && i != 0 && bit_width >= 8 {
+                bytes.push(byte);
+                byte = 0;
+            }
+            // add padding to row
+            if counter % bit_width == 0 && i != 0 {
+                if bit_padding != 0 {
+                    byte = byte << bit_padding;
+                    bytes.push(byte);
+                }
+                byte = 0;
+                counter = 0;
+
+                for _ in 0..byte_padding {
+                    bytes.push(0);
+                }
+            }
+        }
+        if shift != 0 {
+            byte = byte << (8 - shift);
+            bytes.push(byte);
+        }
+        if bytes.len() % 4 != 0 {
+            for _ in 0..byte_padding {
+                bytes.push(0);
+            }
+        }
+
+        BitData {
+            width: bitmap.get_width(),
+            height: bitmap.get_height(),
+            bit_depth,
+            colors: unique_colors,
             bytes,
         }
     }
@@ -138,7 +216,7 @@ impl BitData {
 #[cfg(debug_assertions)]
 impl std::fmt::Display for BitData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for p in ((self.bytes.len() - 5)..self.bytes.len()).rev() {
+        for p in (0..self.bytes.len()).rev() {
             write!(f, "{}:\t{:#b}\n", p, self.bytes[p]).unwrap();
         }
         write!(f, "")

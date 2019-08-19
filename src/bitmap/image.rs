@@ -1,4 +1,5 @@
 // use std::error::Error;
+use super::bit_depth::BitDepth;
 use super::file::File;
 use super::rgba::Rgba;
 
@@ -51,6 +52,9 @@ impl BitMap {
     ///
     pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> BitMap // Result<BitMap, &'static str>
     {
+        // TODO: fix issue where pixels aren't in the correct position
+        //       pixels need to be in a bitmap format or else the api wont work
+        //
         // if width * height != pixels.len()
         // {
         //     return Err("The area must match the ")
@@ -113,6 +117,32 @@ impl BitMap {
     fn get_index(&self, x: u32, y: u32) -> usize {
         (((self.height - y - 1) * self.width) + x) as usize
     }
+
+    ///
+    /// Get all the unique colors from pixels, remove any duplicates
+    ///
+    pub fn get_all_unique_colors(&self) -> Vec<Rgba> {
+        let mut unique_colors = Vec::new();
+        for c in &self.pixels {
+            if !unique_colors.contains(c) {
+                unique_colors.push(c.clone());
+            }
+            // TODO: Magic number???
+            if unique_colors.len() > 256 {
+                break;
+            }
+        }
+        unique_colors
+    }
+
+    pub fn is_image_transparent(&self) -> bool {
+        for c in &self.pixels {
+            if c.is_transparent() {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 ///
@@ -130,20 +160,24 @@ impl BitMap {
                 Ok(_) => Ok(()),
                 Err(_) => Err("Error saving file to disk."),
             },
-            None => Err("Couldn't save image because you didn't create the bitmap from an image"),
+            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
         }
     }
 
     ///
     /// Save the image to a new location on disk
     ///
-    pub fn save_as(&self, filename: &str) -> std::io::Result<()> {
-        let file = File::create(self);
-        use std::io::Write;
-        let mut bit_stream = unsafe { file.to_bytes() };
-        let mut file = std::fs::File::create(filename)?;
-        file.write_all(bit_stream.as_mut_slice())?;
-        Ok(())
+    pub fn save_as(&self, filename: &str) -> Result<(), &'static str> {
+        // check to see if any pixels are transparent
+        let bit_depth = if self.is_image_transparent() {
+            BitDepth::AllColorsAndShades
+        } else {
+            BitDepth::AllColors
+        };
+        match self.save_as_file(filename, bit_depth) {
+            Ok(_) => Ok(()),
+            Err(_) => Err("Error saving file to disk."),
+        }
     }
 
     ///
@@ -157,16 +191,50 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    ///
-    #[allow(dead_code)]
-    pub fn simplify_and_save() -> std::io::Result<()> {
-        Ok(())
+    pub fn simplify_and_save(&self) -> Result<(), &'static str> {
+        let bit_depth = BitDepth::get_suggested_bit_depth(self);
+
+        match self.filename.as_ref() {
+            Some(f) => match self.save_as_file(f, bit_depth) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Error saving file to disk."),
+            },
+            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
+        }
     }
 
-    // pub fn simplify_and_save_as() -> std::io::Result<()>
-    // {
+    ///
+    /// Analyze the currently recorded pixels and try and find the lowest bit
+    /// count possible to save the images at.
+    ///
+    /// The bit depth will be:
+    /// if there are at most 2 colors present, 2 bit
+    /// if there are at most 16 colors present, 4 bit
+    /// if there are at most 256 colors present, 8 bit
+    /// if there are more then 256 colors and all alphas are 100, 24 bit
+    /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
+    ///
+    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), &'static str> {
+        let bit_depth = BitDepth::get_suggested_bit_depth(self);
 
-    // }
+        match self.save_as_file(filename, bit_depth) {
+            Ok(_) => Ok(()),
+            Err(_) => Err("Error saving file to disk."),
+        }
+    }
+
+    ///
+    /// Actually save the file using the given filename and bit depth
+    ///
+    fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> std::io::Result<()> {
+        let file = File::create(self, bit_depth);
+        println!("{}", file);
+        use std::io::Write;
+        let mut bit_stream = unsafe { file.to_bytes() };
+        let mut file = std::fs::File::create(filename)?;
+        file.write_all(bit_stream.as_mut_slice())?;
+        Ok(())
+    }
 }
 
 ///
@@ -503,6 +571,40 @@ impl BitMap {
         self.height = height;
         self.pixels = i2;
     }
+
+    ///
+    /// Rotate the entire image right by 90 degrees
+    ///
+    pub fn rotate_right(&mut self) {
+        let mut new_pixels = Vec::with_capacity(self.get_size() as usize);
+        for x in (0..self.width).rev() {
+            for y in (0..self.height).rev() {
+                new_pixels.push(self.get_pixel(x, y).unwrap().clone());
+            }
+        }
+
+        self.pixels = new_pixels;
+        let temp_width = self.width;
+        self.width = self.height;
+        self.height = temp_width;
+    }
+
+    ///
+    /// Rotate the entire image left by 90 degrees
+    ///
+    pub fn rotate_left(&mut self) {
+        let mut new_pixels = Vec::with_capacity(self.get_size() as usize);
+        for x in 0..self.width {
+            for y in 0..self.height {
+                new_pixels.push(self.get_pixel(x, y).unwrap().clone());
+            }
+        }
+
+        self.pixels = new_pixels;
+        let temp_width = self.width;
+        self.width = self.height;
+        self.height = temp_width;
+    }
 }
 
 impl std::cmp::PartialEq for BitMap {
@@ -549,6 +651,25 @@ impl std::fmt::Display for BitMap {
 mod test {
     use super::BitMap;
     use super::Rgba;
+
+    #[test]
+    fn get_all_unique_colors() {
+        let result = BitMap::new(100, 100).get_all_unique_colors();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn is_image_transparent() {
+        let mut test1 = BitMap::new(10, 10);
+        test1.set_pixel(0, 0, Rgba::rgba(0, 0, 0, 0)).unwrap();
+        assert_eq!(true, test1.is_image_transparent());
+
+        test1.set_pixel(0, 0, Rgba::rgba(0, 0, 0, 99)).unwrap();
+        assert_eq!(true, test1.is_image_transparent());
+
+        let test2 = BitMap::new(10, 10);
+        assert_eq!(false, test2.is_image_transparent());
+    }
 
     #[test]
     fn try_to_save_bitmap_made_in_memory() {
@@ -662,5 +783,39 @@ mod test {
                 assert!(image.get_pixel(x, y).unwrap() == &Rgba::black());
             }
         }
+    }
+
+    #[test]
+    fn rotate_image_left() {
+        let gray = Rgba::rgb(127, 127, 127);
+        let red = Rgba::rgb(255, 0, 0);
+        let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
+        let mut bitmap = BitMap::create(4, 1, pixels);
+        let temp_width = bitmap.get_width();
+        let temp_height = bitmap.get_height();
+        bitmap.rotate_left();
+        assert_eq!(temp_width, bitmap.get_height());
+        assert_eq!(temp_height, bitmap.get_width());
+        assert!(bitmap.get_pixel(0, 0).unwrap() == &red);
+        assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::black());
+        assert!(bitmap.get_pixel(0, 2).unwrap() == &Rgba::white());
+        assert!(bitmap.get_pixel(0, 3).unwrap() == &gray);
+    }
+
+    #[test]
+    fn rotate_image_right() {
+        let gray = Rgba::rgb(127, 127, 127);
+        let red = Rgba::rgb(255, 0, 0);
+        let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
+        let mut bitmap = BitMap::create(4, 1, pixels);
+        let temp_width = bitmap.get_width();
+        let temp_height = bitmap.get_height();
+        bitmap.rotate_right();
+        assert_eq!(temp_width, bitmap.get_height());
+        assert_eq!(temp_height, bitmap.get_width());
+        assert!(bitmap.get_pixel(0, 3).unwrap() == &red);
+        assert!(bitmap.get_pixel(0, 2).unwrap() == &Rgba::black());
+        assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::white());
+        assert!(bitmap.get_pixel(0, 0).unwrap() == &gray);
     }
 }
