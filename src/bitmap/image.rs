@@ -164,30 +164,26 @@ impl BitMap {
     ///
     /// Fail if no original location is linked to the current bitmap
     ///
-    pub fn save(&self) -> Result<(), &'static str> {
+    pub fn save(&self) -> Result<(), String> {
         match self.filename.as_ref() {
-            Some(f) => match self.save_as(f) {
-                Ok(_) => Ok(()),
-                Err(_) => Err("Error saving file to disk."),
-            },
-            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
+            Some(f) => self.save_as(f),
+            None => Err(String::from(
+                "Couldn't save image because you didn't read in the bitmap from an image",
+            )),
         }
     }
 
     ///
     /// Save the image to a new location on disk
     ///
-    pub fn save_as(&self, filename: &str) -> Result<(), &'static str> {
+    pub fn save_as(&self, filename: &str) -> Result<(), String> {
         // check to see if any pixels are transparent
         let bit_depth = if self.is_image_transparent() {
             BitDepth::AllColorsAndShades
         } else {
             BitDepth::AllColors
         };
-        match self.save_as_file(filename, bit_depth) {
-            Ok(_) => Ok(()),
-            Err(_) => Err("Error saving file to disk."),
-        }
+        self.save_as_file(filename, bit_depth)
     }
 
     ///
@@ -201,15 +197,14 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    pub fn simplify_and_save(&self) -> Result<(), &'static str> {
+    pub fn simplify_and_save(&self) -> Result<(), String> {
         let bit_depth = BitDepth::get_suggested_bit_depth(self);
 
         match self.filename.as_ref() {
-            Some(f) => match self.save_as_file(f, bit_depth) {
-                Ok(_) => Ok(()),
-                Err(_) => Err("Error saving file to disk."),
-            },
-            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
+            Some(f) => self.save_as_file(f, bit_depth),
+            None => Err(String::from(
+                "Couldn't save image because you didn't read in the bitmap from an image",
+            )),
         }
     }
 
@@ -224,26 +219,33 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), &'static str> {
+    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), String> {
         let bit_depth = BitDepth::get_suggested_bit_depth(self);
-
-        match self.save_as_file(filename, bit_depth) {
-            Ok(_) => Ok(()),
-            Err(_) => Err("Error saving file to disk."),
-        }
+        self.save_as_file(filename, bit_depth)
     }
 
     ///
     /// Actually save the file using the given filename and bit depth
     ///
-    fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> std::io::Result<()> {
+    fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> Result<(), String> {
         let file = File::create(self, bit_depth);
-        println!("{}", file);
+        use std::error::Error;
         use std::io::Write;
         let mut bit_stream = unsafe { file.to_bytes() };
-        let mut file = std::fs::File::create(filename)?;
-        file.write_all(bit_stream.as_mut_slice())?;
-        Ok(())
+        let mut file = match std::fs::File::create(filename) {
+            Err(why) => {
+                return Err(
+                    format!("Couldn't create {}: {}", filename, why.description()).to_owned(),
+                )
+            }
+            Ok(file) => file,
+        };
+        match file.write_all(bit_stream.as_mut_slice()) {
+            Err(why) => {
+                Err(format!("Couldn't write to {}: {}", filename, why.description()).to_owned())
+            }
+            Ok(_) => Ok(()),
+        }
     }
 }
 
