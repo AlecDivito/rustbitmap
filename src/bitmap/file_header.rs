@@ -74,10 +74,10 @@ impl FileHeader {
     pub fn as_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&[self.bitmap_type[0] as u8, self.bitmap_type[1] as u8]);
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.size));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.reserved1));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.reserved2));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.off_bits));
+        bytes.extend_from_slice(&self.size.to_le_bytes());
+        bytes.extend_from_slice(&self.reserved1.to_le_bytes());
+        bytes.extend_from_slice(&self.reserved2.to_le_bytes());
+        bytes.extend_from_slice(&self.off_bits.to_le_bytes());
         bytes
     }
 
