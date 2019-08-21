@@ -1,5 +1,4 @@
 use super::bit_depth::BitDepth;
-use super::file_header::FileHeader;
 use super::image::BitMap;
 use super::info_header::InfoHeader;
 use super::rgb_quad::RgbQuad;
@@ -27,19 +26,17 @@ pub struct BitData {
 
 impl BitData {
     ///
-    /// Create bit data from stream of bytes
+    /// Create bit data from from_slice of bytes
+    /// and some data that supports it
     ///
-    pub fn stream(
+    pub fn from_slice(
         bit_stream: &[u8],
-        file: &FileHeader,
         info: &InfoHeader,
         bit_depth: BitDepth,
         colors: &RgbQuad,
     ) -> BitData {
-        let offset = file.get_off_bits() as usize;
-        // for byte in offset..bits
         let mut bytes = Vec::new();
-        for index in offset..bit_stream.len() {
+        for index in 0..bit_stream.len() {
             bytes.push(bit_stream[index]);
         }
         BitData {
@@ -131,7 +128,7 @@ impl BitData {
     }
 
     ///
-    /// Pass the bit data back as a stream of bytes
+    /// Pass the bit data back as a from_slice of bytes
     ///
     pub fn as_bytes(&self) -> Vec<u8> {
         self.bytes.clone()

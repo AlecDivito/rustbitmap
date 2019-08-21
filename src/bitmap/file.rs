@@ -19,7 +19,7 @@ impl File {
     ///
     pub fn read(filename: &str) -> Result<File, String> {
         use std::io::ErrorKind;
-        let array = match std::fs::read(filename) {
+        let byte_array = match std::fs::read(filename) {
             Err(why) => {
                 return Err(String::from(match why.kind() {
                     ErrorKind::NotFound => format!("File {} was not found!", filename),
@@ -32,12 +32,54 @@ impl File {
             }
             Ok(bytes) => bytes,
         };
-        let file = FileHeader::stream(&array);
-        let info = InfoHeader::stream(&array);
-        let colors = RgbQuad::stream(&array, &file, &info);
-        let data = match FileData::stream(&array, &file, &info, &colors) {
+        if byte_array.len() == 0 {
+            format!("File {} is empty!", filename);
+        }
+
+        let mut size_clamp = FileHeader::estimated_byte_size();
+
+        // file header
+        let file_header_bytes = if byte_array.len() > size_clamp {
+            &byte_array[FileHeader::from_slice_range()]
+        } else {
+            return Err(String::from("Not enough data to parse bitmap header."));
+        };
+        let file = match FileHeader::from_slice(&file_header_bytes) {
+            Err(why) => return Err(String::from(why)),
+            Ok(f) => f,
+        };
+
+        // info header
+        size_clamp = size_clamp + InfoHeader::estimated_byte_size();
+        let file_info_bytes = if byte_array.len() > size_clamp {
+            &byte_array[InfoHeader::from_slice_range()]
+        } else {
+            return Err(String::from("Not enough data to parse bitmap info header."));
+        };
+        let info = match InfoHeader::from_slice(&file_info_bytes) {
+            Err(why) => return Err(String::from(why)),
+            Ok(i) => i,
+        };
+
+        // colors
+        let offset = (file.get_byte_size() + info.get_byte_size()) as usize;
+        let color_byte_size = info.get_colors_used() as usize * RgbQuad::single_rgb_quad_size();
+        size_clamp = size_clamp + color_byte_size;
+        let color_bytes = if byte_array.len() > size_clamp {
+            &byte_array[offset..size_clamp]
+        } else {
+            return Err(String::from("Not enough data to parse bitmap colors."));
+        };
+        let colors = match RgbQuad::from_slice(&color_bytes) {
+            Err(why) => return Err(String::from(why)),
+            Ok(i) => i,
+        };
+
+        // data
+        let pixel_bytes = &byte_array[file.get_off_bits() as usize..byte_array.len()];
+        let data = match FileData::from_slice(&pixel_bytes, &info, &colors) {
             Some(d) => d,
-            None => return Err(String::from("Couldn't read in pixels from file"))
+            None => return Err(String::from("Couldn't read in pixels from file")),
         };
         Ok(File {
             file,

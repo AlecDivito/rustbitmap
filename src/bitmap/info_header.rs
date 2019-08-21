@@ -1,4 +1,5 @@
 use super::bit_depth::BitDepth;
+use super::file_header::FileHeader;
 use super::util;
 
 use super::image::BitMap;
@@ -38,6 +39,23 @@ pub struct InfoHeader {
     colors_important: u32,
 }
 
+///
+/// Used for constants
+///
+impl InfoHeader {
+    pub fn from_slice_range() -> std::ops::Range<usize> {
+        let prefix = FileHeader::estimated_byte_size();
+        prefix..(prefix + InfoHeader::estimated_byte_size())
+    }
+
+    pub fn estimated_byte_size() -> usize {
+        40
+    }
+}
+
+///
+/// Core implementation
+///
 impl InfoHeader {
     ///
     /// Create a header based on a bitmap.
@@ -65,7 +83,7 @@ impl InfoHeader {
     }
 
     ///
-    /// Read in header based on stream of bytes
+    /// Read in header based on from_slice of bytes
     ///
     /// Bytes should be in correct order
     ///
@@ -81,10 +99,13 @@ impl InfoHeader {
     /// 10. colors_used as a u32
     /// 11. colors_important as a u32
     ///
-    pub fn stream(bit_stream: &[u8]) -> InfoHeader {
+    pub fn from_slice(bit_stream: &[u8]) -> Result<InfoHeader, &'static str> {
         // starts at 14
-        let mut i: usize = 14;
-        InfoHeader {
+        let mut i: usize = 0;
+        if bit_stream.len() < 40 {
+            return Err("Error reading info header, not enough data found!");
+        }
+        Ok(InfoHeader {
             size: util::byte_slice_to_u32(bit_stream, &mut i),
             width: util::byte_slice_to_u32(bit_stream, &mut i),
             height: util::byte_slice_to_u32(bit_stream, &mut i),
@@ -96,7 +117,7 @@ impl InfoHeader {
             y_pixels_per_meter: util::byte_slice_to_u32(bit_stream, &mut i),
             colors_used: util::byte_slice_to_u32(bit_stream, &mut i),
             colors_important: util::byte_slice_to_u32(bit_stream, &mut i),
-        }
+        })
     }
 
     ///

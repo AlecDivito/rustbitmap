@@ -8,17 +8,34 @@ pub struct RgbQuad {
     data: Vec<Rgba>,
 }
 
+///
+/// Used for constants
+///
+impl RgbQuad {
+    pub fn single_rgb_quad_size() -> usize {
+        4
+    }
+}
+
+///
+/// Core implementation
+///
 impl RgbQuad {
     ///
-    /// From a stream of bytes, read in a list of colors used to render the
+    /// From a from_slice of bytes, read in a list of colors used to render the
     /// bitmap image
     ///
-    pub fn stream(bit_stream: &[u8], file: &FileHeader, info: &InfoHeader) -> RgbQuad {
+    pub fn from_slice(bit_stream: &[u8]) -> Result<RgbQuad, &'static str> {
+        if bit_stream.len() == 0 {
+            return Ok(RgbQuad::empty());
+        }
         let mut data = Vec::new();
-        let offset = file.get_byte_size() + info.get_byte_size();
-
-        for index in 0..info.get_colors_used() {
-            let i: usize = ((index * 4) + offset) as usize;
+        if bit_stream.len() % 4 != 0 {
+            return Err("Not enough data to parse Rgb quad colors");
+        }
+        let colors_used = bit_stream.len() / 4;
+        for index in 0..colors_used {
+            let i: usize = index * 4;
             data.push(Rgba::bgra(
                 bit_stream[i],
                 bit_stream[i + 1],
@@ -27,7 +44,7 @@ impl RgbQuad {
             ));
         }
 
-        RgbQuad { data }
+        Ok(RgbQuad { data })
     }
 
     ///
