@@ -1,7 +1,5 @@
 use super::bit_depth::BitDepth;
-use super::file_header::FileHeader;
 use super::image::BitMap;
-use super::info_header::InfoHeader;
 use super::rgba::Rgba;
 
 pub struct RgbQuad {
