@@ -15,9 +15,10 @@ before_script:
   - rustup component add clippy
 
 script:
-  - cargo fmt --all -- --check
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - cargo fmt --all -- --check
+  - cargo doc
 
 addons:
   apt:

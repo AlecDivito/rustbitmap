@@ -1,4 +1,4 @@
-# rust-bitmap
+# rustbitmap
 [![Build Status](https://travis-ci.org/AlecDivito/rusty-bitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rusty-bitmap)
 [![codecov](https://codecov.io/gh/AlecDivito/rusty-bitmap/branch/master/graph/badge.svg)](https://codecov.io/gh/AlecDivito/rusty-bitmap)
 <br>
@@ -14,7 +14,7 @@ rust-bitmap = "0.1.0"
 
 # Documentation
 
-Documentation can be found [Here](https://alecdivito.github.io/rust-bitmap/)
+Documentation can be found on github pages [Here](https://alecdivito.github.io/rust-bitmap/)
 
 # Getting start
 

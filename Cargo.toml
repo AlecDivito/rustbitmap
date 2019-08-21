@@ -6,19 +6,16 @@ repository = "https://github.com/AlecDivito/rust-bitmap"
 homepage = "https://github.com/AlecDivito/rust-bitmap"
 license = "MIT"
 readme = "README.md"
-documentation = "https://alecdivito.github.io/rust-bitmap/"
 description = "Read, write and edit bitmap files."
 edition = "2018"
-default-run = "rbitmap"
+keywords = ["bitmap", "image", "encoding", "decoding", "editting"]
+categories = ["parsing", "multimedia::images"]
+include = [ "Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "rustbitmap"
 path = "src/lib.rs"
 crate-type = ["rlib", "dylib"]
-
-[[bin]]
-name = "rbitmap"
-path = "src/main.rs"
 
 [dependencies]
