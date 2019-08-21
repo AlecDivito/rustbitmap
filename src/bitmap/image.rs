@@ -58,21 +58,21 @@ impl BitMap {
     /// Create a new image from a list of pixels
     /// TODO: Added Error handling if there are not enough pixels
     ///
-    pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> BitMap // Result<BitMap, &'static str>
-    {
+    pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> Result<BitMap, &'static str> {
         // TODO: fix issue where pixels aren't in the correct position
         //       pixels need to be in a bitmap format or else the api wont work
         //
-        // if width * height != pixels.len()
-        // {
-        //     return Err("The area must match the ")
-        // }
-        BitMap {
+        if (width * height) as usize != pixels.len() {
+            return Err(
+                "The area of the image must match the number of pixels you are passing in.",
+            );
+        }
+        Ok(BitMap {
             filename: None,
             width,
             height,
             pixels,
-        }
+        })
     }
 
     pub fn get_pixel(&self, x: u32, y: u32) -> Option<&Rgba> {
@@ -309,7 +309,10 @@ impl BitMap {
             }
         }
 
-        Ok(BitMap::create(width, height, colors))
+        match BitMap::create(width, height, colors) {
+            Err(why) => Err(why),
+            Ok(b) => Ok(b),
+        }
     }
 
     ///
@@ -344,7 +347,7 @@ impl BitMap {
 }
 
 ///
-/// This implementation block deals with coloring the image
+/// This block deals with coloring the image
 ///
 impl BitMap {
     ///
@@ -442,8 +445,9 @@ impl BitMap {
 }
 
 ///
-/// This implementation block is only meant for resizing images using one of the
-/// 3 (so far only 2 implemented) algorithms (nearest neighbor, bilinear, bicubic)
+/// This block is only meant for resizing images using one of the 3 (so far only
+/// 2 implemented) algorithms (nearest neighbor, bilinear, bicubic) as well as
+/// rotating the image left or right by 90 degrees
 ///
 impl BitMap {
     ///
@@ -678,6 +682,12 @@ mod test {
     }
 
     #[test]
+    fn not_enough_pixels_to_create_image() {
+        let b = BitMap::create(2, 2, Vec::new());
+        assert!(b.is_err());
+    }
+
+    #[test]
     fn get_all_unique_colors() {
         let result = BitMap::new(100, 100).get_all_unique_colors();
         assert_eq!(result.len(), 1);
@@ -811,11 +821,49 @@ mod test {
     }
 
     #[test]
+    fn test_resize_to() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.resize_to(10, 10);
+        assert_eq!(bitmap.get_width(), 10);
+        assert_eq!(bitmap.get_height(), 10);
+    }
+
+    #[test]
+    fn test_resize_by() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.resize_by(8.0);
+        assert_eq!(bitmap.get_width(), 16);
+        assert_eq!(bitmap.get_height(), 16);
+        bitmap.resize_by(0.25);
+        assert_eq!(bitmap.get_width(), 4);
+        assert_eq!(bitmap.get_height(), 4);
+    }
+
+    #[test]
+    fn test_fast_resize_to() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.fast_resize_to(10, 10);
+        assert_eq!(bitmap.get_width(), 10);
+        assert_eq!(bitmap.get_height(), 10);
+    }
+
+    #[test]
+    fn test_fast_resize_by() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.fast_resize_by(8.0);
+        assert_eq!(bitmap.get_width(), 16);
+        assert_eq!(bitmap.get_height(), 16);
+        bitmap.fast_resize_by(0.25);
+        assert_eq!(bitmap.get_width(), 4);
+        assert_eq!(bitmap.get_height(), 4);
+    }
+
+    #[test]
     fn rotate_image_left() {
         let gray = Rgba::rgb(127, 127, 127);
         let red = Rgba::rgb(255, 0, 0);
         let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
-        let mut bitmap = BitMap::create(4, 1, pixels);
+        let mut bitmap = BitMap::create(4, 1, pixels).unwrap();
         let temp_width = bitmap.get_width();
         let temp_height = bitmap.get_height();
         bitmap.rotate_left();
@@ -832,7 +880,7 @@ mod test {
         let gray = Rgba::rgb(127, 127, 127);
         let red = Rgba::rgb(255, 0, 0);
         let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
-        let mut bitmap = BitMap::create(4, 1, pixels);
+        let mut bitmap = BitMap::create(4, 1, pixels).unwrap();
         let temp_width = bitmap.get_width();
         let temp_height = bitmap.get_height();
         bitmap.rotate_right();
