@@ -1,8 +1,10 @@
-// use std::error::Error;
 use super::bit_depth::BitDepth;
 use super::file::File;
 use super::rgba::Rgba;
 
+///
+/// This is how you use bitmap
+///
 pub struct BitMap {
     /// file read from
     filename: Option<String>,
@@ -56,12 +58,8 @@ impl BitMap {
 
     ///
     /// Create a new image from a list of pixels
-    /// TODO: Added Error handling if there are not enough pixels
     ///
     pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> Result<BitMap, &'static str> {
-        // TODO: fix issue where pixels aren't in the correct position
-        //       pixels need to be in a bitmap format or else the api wont work
-        //
         if (width * height) as usize != pixels.len() {
             return Err(
                 "The area of the image must match the number of pixels you are passing in.",
@@ -75,6 +73,9 @@ impl BitMap {
         })
     }
 
+    ///
+    /// Get a pixel at a specific x and y coordinate
+    ///
     pub fn get_pixel(&self, x: u32, y: u32) -> Option<&Rgba> {
         if x >= self.width || y >= self.height {
             return None;
@@ -239,7 +240,7 @@ impl BitMap {
         let file = File::create(self, bit_depth);
         use std::error::Error;
         use std::io::Write;
-        let mut bit_stream = unsafe { file.to_bytes() };
+        let mut bit_stream = file.to_bytes();
         let mut file = match std::fs::File::create(filename) {
             Err(why) => {
                 return Err(
@@ -363,7 +364,7 @@ impl BitMap {
         }
         // images are saved upside down, so to get the pixel we flip it right side up
         let index = self.get_index(x, y);
-        self.pixels[index as usize] = color;
+        self.pixels[index] = color;
         Ok(())
     }
 
@@ -631,7 +632,7 @@ impl BitMap {
     }
 }
 
-impl std::cmp::PartialEq for BitMap {
+impl PartialEq for BitMap {
     fn eq(&self, other: &Self) -> bool {
         if self.pixels.len() != other.pixels.len()
             || self.width != other.width
@@ -668,6 +669,25 @@ impl std::fmt::Display for BitMap {
             write!(f, "{}\n", c).unwrap();
         }
         write!(f, "\n")
+    }
+}
+
+#[cfg(debug_assertions)]
+impl std::fmt::Debug for BitMap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Bitmap: {{ ").unwrap();
+        if self.filename.is_some() {
+            write!(f, "filename: {} ", self.filename.as_ref().unwrap()).unwrap();
+        } else {
+            write!(f, "filename: None ").unwrap();
+        }
+        write!(
+            f,
+            "width: {}\t height: {}\t pixels: {} }}",
+            self.width,
+            self.height,
+            self.pixels.len()
+        )
     }
 }
 

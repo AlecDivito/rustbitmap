@@ -1,7 +1,6 @@
-extern crate rustybitmap;
+extern crate rustbitmap;
 
-use rustybitmap::bitmap::image::BitMap;
-use rustybitmap::bitmap::rgba::Rgba;
+use rustbitmap::BitMap;
 
 fn main() {
     // part 1, read and write files
@@ -10,26 +9,26 @@ fn main() {
     // The read function should be able to read in any bitmap with any type of
     // bit count, HOWEVER, it should store everything as a 32 Bit Count bit map
     // when saving,
-    // let mut bitmap1 = BitMap::read("./a/w3c_home.bmp").unwrap();
-    // let mut bitmap2 = BitMap::read("./a/w3c_home_2.bmp").unwrap();
-    // let mut bitmap3 = BitMap::read("./a/w3c_home_gray.bmp").unwrap();
-    // let mut bitmap4 = BitMap::read("./a/w3c_home_256.bmp").unwrap();
+    let mut bitmap1 = BitMap::read("./a/w3c_home.bmp").unwrap();
+    let mut bitmap2 = BitMap::read("./a/w3c_home_2.bmp").unwrap();
+    let mut bitmap3 = BitMap::read("./a/w3c_home_gray.bmp").unwrap();
+    let mut bitmap4 = BitMap::read("./a/w3c_home_256.bmp").unwrap();
 
-    // bitmap1.save().unwrap();
-    // bitmap2.save().unwrap();
-    // bitmap3.save().unwrap();
-    // bitmap4.save().unwrap();
+    bitmap1.save().unwrap();
+    bitmap2.save().unwrap();
+    bitmap3.save().unwrap();
+    bitmap4.save().unwrap();
 
-    // // resize will resize the image by a percentage
-    // bitmap1.resize_by(4.0);
-    // bitmap2.resize_by(0.25);
-    // bitmap3.resize_to(50, 48);
-    // bitmap4.resize_to(500, 50);
+    // resize will resize the image by a percentage
+    bitmap1.resize_by(4.0);
+    bitmap2.resize_by(0.25);
+    bitmap3.resize_to(50, 48);
+    bitmap4.resize_to(500, 50);
 
-    // bitmap1.save_as("./a/w3cc_home.bmp").unwrap();
-    // bitmap2.save_as("./a/w3cc_home_2.bmp").unwrap();
-    // bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
-    // bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
+    bitmap1.simplify_and_save_as("./a/w3cc_home.bmp").unwrap();
+    bitmap2.save_as("./a/w3cc_home_2.bmp").unwrap();
+    bitmap3.save_as("./a/w3cc_home_gray.bmp").unwrap();
+    bitmap4.save_as("./a/w3cc_home_256.bmp").unwrap();
 
     // let pixels = vec![Rgba::rgb(127, 127, 127), Rgba::white(), Rgba::black(), Rgba::rgb(255, 0, 0)];
     // let mut bitmap = BitMap::create(4, 1, pixels);
@@ -65,10 +64,6 @@ fn main() {
     // b.simplify_and_save_as("hahahaha_stay_in_the_light.bmp")
     //     .unwrap();
     // b.save_as("hahahaha_stay_in_the_light2.bmp").unwrap();
-
-    for i in 0..256 {
-        println!("{}", i);
-    }
 
     // let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.rotate_right();

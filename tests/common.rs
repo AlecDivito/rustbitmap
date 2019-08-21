@@ -48,7 +48,9 @@ pub fn teardown() {
     // create a path to the desired file
     let text_bitmap_test = Path::new(TEXT_BITMAP_FILE);
     let empty_file_bitmap = Path::new(EMPTY_BITMAP_FILE);
-    let files = vec![text_bitmap_test, empty_file_bitmap];
+    let big_text_bitmap_test = Path::new(BIG_TEXT_BITMAP_FILE);
+
+    let files = vec![text_bitmap_test, empty_file_bitmap, big_text_bitmap_test];
 
     for file in files {
         match std::fs::remove_file(file) {

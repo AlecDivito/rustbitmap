@@ -130,17 +130,17 @@ impl InfoHeader {
     ///
     pub fn as_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.size));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.width));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.height));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.planes));
-        bytes.extend_from_slice(&util::byte_slice_from_u16(self.bit_depth));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.compression));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.size_image));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.x_pixels_per_meter));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.y_pixels_per_meter));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.colors_used));
-        bytes.extend_from_slice(&util::byte_slice_from_u32(self.colors_important));
+        bytes.extend_from_slice(&self.size.to_le_bytes());
+        bytes.extend_from_slice(&self.width.to_le_bytes());
+        bytes.extend_from_slice(&self.height.to_le_bytes());
+        bytes.extend_from_slice(&self.planes.to_le_bytes());
+        bytes.extend_from_slice(&self.bit_depth.to_le_bytes());
+        bytes.extend_from_slice(&self.compression.to_le_bytes());
+        bytes.extend_from_slice(&self.size_image.to_le_bytes());
+        bytes.extend_from_slice(&self.x_pixels_per_meter.to_le_bytes());
+        bytes.extend_from_slice(&self.y_pixels_per_meter.to_le_bytes());
+        bytes.extend_from_slice(&self.colors_used.to_le_bytes());
+        bytes.extend_from_slice(&self.colors_important.to_le_bytes());
         bytes
     }
 

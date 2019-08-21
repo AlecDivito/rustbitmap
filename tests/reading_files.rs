@@ -1,6 +1,6 @@
-extern crate rustybitmap;
+extern crate rustbitmap;
 
-use rustybitmap::bitmap::image::BitMap;
+use rustbitmap::BitMap;
 
 mod common;
 

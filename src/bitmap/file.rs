@@ -117,7 +117,7 @@ impl File {
             + self.data.get_bytes_size()
     }
 
-    pub unsafe fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
         bytes.append(&mut self.file.as_bytes());
         bytes.append(&mut self.info.as_bytes());
@@ -179,33 +179,18 @@ mod test {
         let b = BitMap::new(2, 2);
 
         let file = File::create(&b, BitDepth::Color2Bit);
-        assert_eq!(
-            unsafe { file.to_bytes().len() },
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::Color16Bit);
-        assert_eq!(
-            unsafe { file.to_bytes().len() },
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::Color256Bit);
-        assert_eq!(
-            unsafe { file.to_bytes().len() },
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::AllColors);
-        assert_eq!(
-            unsafe { file.to_bytes().len() },
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::AllColorsAndShades);
-        assert_eq!(
-            unsafe { file.to_bytes().len() },
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
     }
 }
