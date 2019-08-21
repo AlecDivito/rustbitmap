@@ -13,15 +13,11 @@ matrix:
 before_script:
   - rustup component add rustfmt
   - rustup component add clippy
-  - |
-    pip install 'travis-cargo < 0.2' --user &&
-    export PATH=$HOME/.local/bin:$PATH
 
 script:
   - cargo fmt --all -- --check
-  - travis-cargo build --verbose --all
-  - travis-cargo test --verbose --all
-  - travis-cargo --only beta doc
+  - cargo build --verbose --all
+  - cargo test --verbose --all
 
 addons:
   apt:
@@ -34,9 +30,7 @@ addons:
       - binutils-dev
       - libiberty-dev
 
-after_success: 
-  - travis-cargo --only stable doc-upload
-  - |
+after_success: |
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
   tar xzf master.tar.gz &&
   cd kcov-master &&
@@ -54,7 +48,3 @@ after_success:
 notifications:
   email:
     on_success: never
-
-env:
-  global:
-    - TRAVIS_CARGO_NIGHTLY_FEATURE = ""
