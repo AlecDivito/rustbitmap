@@ -2,6 +2,12 @@
 name = "bmp-writer"
 version = "0.1.0"
 authors = ["Alec Divito <divito.alec@gmail.com>"]
+repository = "https://github.com/AlecDivito/rust-bitmap"
+homepage = "https://github.com/AlecDivito/rust-bitmap"
+license = "MIT"
+readme = "README.md"
+documentation = "https://alecdivito.github.io/rust-bitmap/"
+description = "Read, write and edit bitmap files."
 edition = "2018"
 default-run = "rbitmap"
 

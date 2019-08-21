@@ -1,3 +1,4 @@
+sudo: false
 language: rust
 
 rust:
@@ -12,11 +13,15 @@ matrix:
 before_script:
   - rustup component add rustfmt
   - rustup component add clippy
+  - |
+    pip install 'travis-cargo < 0.2' --user &&
+    export PATH=$HOME/.local/bin:$PATH
 
 script:
-  - cargo build --verbose --all
-  - cargo test --verbose --all
   - cargo fmt --all -- --check
+  - travis-cargo build --verbose --all
+  - travis-cargo test --verbose --all
+  - travis-cargo --only beta doc
 
 addons:
   apt:
@@ -29,7 +34,9 @@ addons:
       - binutils-dev
       - libiberty-dev
 
-after_success: |
+after_success: 
+  - travis-cargo --only stable doc-upload
+  - |
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
   tar xzf master.tar.gz &&
   cd kcov-master &&
@@ -43,3 +50,11 @@ after_success: |
   for file in target/debug/rustybitmap-*; do [ -x "${file}" ] || continue; mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
   bash <(curl -s https://codecov.io/bash) &&
   echo "Uploaded code coverage"
+
+notifications:
+  email:
+    on_success: never
+
+env:
+  global:
+    - TRAVIS_CARGO_NIGHTLY_FEATURE = ""
