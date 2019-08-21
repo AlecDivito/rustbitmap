@@ -1,7 +1,6 @@
 extern crate rustybitmap;
 
 use rustybitmap::bitmap::image::BitMap;
-use rustybitmap::bitmap::rgba::Rgba;
 
 mod common;
 
@@ -10,6 +9,16 @@ fn fails_when_reading_text_file() {
     common::setup();
 
     let bitmap = BitMap::read(common::TEXT_BITMAP_FILE);
+    assert!(bitmap.is_err());
+
+    common::teardown();
+}
+
+#[test]
+fn fails_when_reading_big_text_file() {
+    common::setup();
+
+    let bitmap = BitMap::read(common::BIG_TEXT_BITMAP_FILE);
     assert!(bitmap.is_err());
 
     common::teardown();
