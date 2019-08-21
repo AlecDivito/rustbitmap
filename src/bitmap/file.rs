@@ -179,33 +179,18 @@ mod test {
         let b = BitMap::new(2, 2);
 
         let file = File::create(&b, BitDepth::Color2Bit);
-        assert_eq!(
-            file.to_bytes().len(),
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::Color16Bit);
-        assert_eq!(
-            file.to_bytes().len(),
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::Color256Bit);
-        assert_eq!(
-            file.to_bytes().len(),
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::AllColors);
-        assert_eq!(
-            file.to_bytes().len(),
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
 
         let file = File::create(&b, BitDepth::AllColorsAndShades);
-        assert_eq!(
-            file.to_bytes().len(),
-            file.calculate_file_size() as usize
-        );
+        assert_eq!(file.to_bytes().len(), file.calculate_file_size() as usize);
     }
 }

@@ -2,10 +2,10 @@
 /// Rgba represents the colors red, green, blue, alpha. Alpha represents the
 /// transparency of the image while red, green and blue represent the intensity
 /// of the colors.
-/// 
+///
 /// Alpha is managed between 0 - 100
 /// Red Green and Blue is managed between 0 - 255
-/// 
+///
 #[derive(Debug, Clone, Copy)]
 pub struct Rgba {
     red: u8,
@@ -15,10 +15,9 @@ pub struct Rgba {
 }
 
 impl Rgba {
-
     ///
     /// Create the color white
-    /// 
+    ///
     pub fn white() -> Rgba {
         Rgba {
             red: 255,
@@ -30,7 +29,7 @@ impl Rgba {
 
     ///
     /// Create the color black
-    /// 
+    ///
     pub fn black() -> Rgba {
         Rgba {
             red: 0,
@@ -42,7 +41,7 @@ impl Rgba {
 
     ///
     /// Create a color by specifying red, green and blue
-    /// 
+    ///
     pub fn rgb(red: u8, green: u8, blue: u8) -> Rgba {
         Rgba {
             red,
@@ -54,7 +53,7 @@ impl Rgba {
 
     ///
     /// Create a color by specifying blue, green and red
-    /// 
+    ///
     pub fn bgr(blue: u8, green: u8, red: u8) -> Rgba {
         Rgba {
             red,
@@ -66,7 +65,7 @@ impl Rgba {
 
     ///
     /// Create a color by specifying blue, green, red and alpha
-    /// 
+    ///
     pub fn bgra(blue: u8, green: u8, red: u8, alpha: u8) -> Rgba {
         Rgba {
             red,
@@ -78,7 +77,7 @@ impl Rgba {
 
     ///
     /// Create a color by specifying red, green, blue and alpha
-    /// 
+    ///
     pub fn rgba(red: u8, green: u8, blue: u8, alpha: u8) -> Rgba {
         Rgba {
             red,
@@ -90,7 +89,7 @@ impl Rgba {
 
     ///
     /// Change the current color to the other color
-    /// 
+    ///
     pub fn recolor_to(&mut self, other: &Self) {
         self.red = other.red;
         self.green = other.green;
@@ -100,35 +99,35 @@ impl Rgba {
 
     ///
     /// Check if the alpha value is less then 100 (Visible)
-    /// 
+    ///
     pub fn is_transparent(&self) -> bool {
         self.alpha < 100
     }
 
     ///
     /// get the amount of red in the pixel
-    /// 
+    ///
     pub fn get_red(&self) -> u8 {
         self.red
     }
 
     ///
     /// get the amount of green in the pixel
-    /// 
+    ///
     pub fn get_green(&self) -> u8 {
         self.green
     }
 
     ///
     /// get the amount of blue in the pixel
-    /// 
+    ///
     pub fn get_blue(&self) -> u8 {
         self.blue
     }
 
     ///
     /// get the amount of alpha in the pixel
-    /// 
+    ///
     pub fn get_alpha(&self) -> u8 {
         std::cmp::min(self.alpha, 100)
     }

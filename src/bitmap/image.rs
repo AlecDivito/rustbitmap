@@ -75,7 +75,7 @@ impl BitMap {
 
     ///
     /// Get a pixel at a specific x and y coordinate
-    /// 
+    ///
     pub fn get_pixel(&self, x: u32, y: u32) -> Option<&Rgba> {
         if x >= self.width || y >= self.height {
             return None;
