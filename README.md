@@ -1,43 +1,113 @@
-# rusty-bitmap
+# rust-bitmap
 [![Build Status](https://travis-ci.org/AlecDivito/rusty-bitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rusty-bitmap)
 [![codecov](https://codecov.io/gh/AlecDivito/rusty-bitmap/branch/master/graph/badge.svg)](https://codecov.io/gh/AlecDivito/rusty-bitmap)
 <br>
-Just a simple bitmap file reader. Easily read in bitmaps of any size, edit them anyway you like and save them to any bitcount you want.
+A rust library that can read, write and edit bitmap files.
 
-## Project Status
-This project is currently in development. Users can currently read in bitmap and save them to the same file or to a new file. Functionality for editing the images while in memory is currently in progress
+# Usage
+Add this to your `Cargo.toml`:
 
-## Installation and Setup Instructions
-Project is still under heavy development, more details about installing and setup will come later.
+```toml
+[dependencies]
+rust-bitmap = "0.1.0"
+```
 
-## Project Goals
-The goals of this project is to create a library that is testable and deployable to npm and crates.io. The hope is that I (or anyone else) is able to use this to work with any bitmaps or directory of bitmaps on the web or in an application. The overarching goal was to get more experience with rust and developing libraries
+# Getting start
 
-Originally I wanted to build a small machine learning network by following a tutorial and converting the code from python to rust. I decided to take it one step further and try and create my own libraries around the tutorial to give me more experience with other types of development.
+## Creating
+rust-bitmap makes it really easy to read in bitmaps and edit them. To load a
+bitmap from a file just pass in the string to the file. It's also possible to
+create plain white in memory bitmaps as well.
 
-The biggest challenges I have currently ran into while developing this project are the different ways the data is formatted and read in and written to for bitmaps. The data section has some finicky rules were a row of bytes must always end at a length that is divisible by 4. So if you have a binary, 4x4 pixel image (16 bits total), your data will be padded to 16 bytes. That was about a days worth of slamming my head against my desk.
+```
+extern crate rustbitmap;
 
-At the end of the day I hope after this project is completed that it will be useful when dealing with canvas data on the web and anyone working with bitmaps in they're rust applications. I'm really excited about the possibilities that webassembly brings to the browser. 
+use rustbitmap::BitMap;
+use rustbitmap::Rgba;
 
-## Community
-If you come by this project and want to contribute just post an issue, any help is always welcome.
+fn main() {
+   // load bitmap from file
+   let bitmap = BitMap::read("example.bmp").unwrap();
 
-## Resources
-- This wouldn't be doable without some bitmap references to follow:
-  - http://paulbourke.net/dataformats/bitmaps/
-  - https://web.archive.org/web/20080912171714/http://www.fortunecity.com/skyscraper/windows/364/bmpffrmt.html
-  - http://www.digicamsoft.com/bmp/bmp.html
-  - https://en.wikipedia.org/wiki/BMP_file_format#RGB_video_subtypes
-- Resizing bitmaps using nearest neighbor, bilinear, or bicubic
-   - https://en.wikipedia.org/wiki/Image_scaling
-   - http://inside.mines.edu/~whoff/courses/EENG510/lectures/04-InterpolationandSpatialTransforms.pdf
+   // create a new bitmap that is 24 pixels by 24 pixels
+   let bitmap = BitMap::new(24, 24).unwrap();
 
-## Extra resources to learn about png and gif
-- png stuff:
-   - https://gitlab.com/randy408/libspng
-   - https://github.com/glennrp/libpng/
-   - http://www.libpng.org/pub/png/
+   // create 2 by 2 bitmap that is colored all black
+   let bitmap = BitMap::create(2, 2,
+      [Rgba::black, Rgba::black, Rgba::black, Rgba::black]
+   ).unwrap();
+}
+```
 
-- gif stuff:
-   - https://www.w3.org/Graphics/GIF/spec-gif89a.txt
-   - https://en.wikipedia.org/wiki/GIF
+## Saving
+
+To save a bitmap is very easy as well. There are 2 options to saving a bit map
+which is to try and save a simplified version or to save a default 24 bit color
+version.
+
+```
+extern crate rustbitmap;
+
+use rustbitmap::BitMap;
+
+fn main() {
+   let bitmap = BitMap::new(24, 24).unwrap();
+   // the bitmap will be saved as a 24 bit image
+   bitmap.save_as("24_bit_white_square.bmp").unwrap();
+   // because the image is just a white square, it will be saved as a 1 bit image
+   bitmap.simplify_and_save_as("1_bit_white_square.bmp").unwrap();
+}
+```
+
+## Resizing
+
+You can also edit the size of our bitmaps really quickly and easily by using
+a range of different resizing tools such as nearest neighbor, bilinear interpolation
+and bicubic interpolation. Using the different resizing tools we can create really
+cool gradients.
+
+```
+extern crate rustbitmap;
+
+use rustbitmap::{ BitMap, Rgba };
+
+fn main() {
+   let red = Rgba::rgb(255, 0, 0);
+   let blue = Rgba::rgb(0, 0, 255);
+   let green = Rgba::rgb(0, 255, 0);
+   let white = Rgba::rgb(255, 255, 255);
+   let pixels = vec![red, blue, green, white];
+   let mut bitmap = Bitmap::create(2, 2, pixels).unwrap();
+   bitmap.resize_by(100.0);
+   bitmap.save_as("gradient.bmp").unwrap();
+}
+```
+
+## Editing
+
+If you want to crop an image or paste one bitmap into another it's really easy:
+
+```
+fn main() {
+   let mut bitmap = BitMap::new(24, 24).unwrap();
+   let cropped = bitmap.crop(0, 0, 10, 10).unwrap();
+
+   // cropped is not a new bitmap image that is 10 by 10 of the original bitmap
+   // image starting at (0, 0)
+
+   // let's recolor our original image using `fill`. Fill works just like the
+   // paint bucket tool in most drawing applications.
+   bitmap.fill_region(5, 5, Rgba::black()).unwrap();
+
+   // now the entire original image is black, let's paste back in our cropped
+   // image in a new position
+   bitmap.paste
+}
+```
+
+# License
+Licensed under [MIT license](LICENSE) or http://opensource.org/licenses/MIT
+
+# Contribution
+If you come by this project and want to contribute just post an issue, explaining
+what feature you would like to add or bug you ran into.
