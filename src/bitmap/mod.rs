@@ -5,7 +5,7 @@ mod file_data;
 mod file_header;
 
 ///
-/// Read in and edit an bitmap image or create one
+/// Read in, create and edit bitmaps
 ///
 pub mod image;
 mod info_header;
@@ -13,7 +13,7 @@ mod pixel_data;
 mod rgb_quad;
 
 ///
-/// Using Rgba it's possible to color each pixel of an image
+/// Color representation (Red, Green, Blue, Alpha)
 ///
 pub mod rgba;
 mod util;

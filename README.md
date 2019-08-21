@@ -14,7 +14,7 @@ rust-bitmap = "0.1.0"
 
 # Getting start
 
-## Creating
+## Reading Files and Creating bitmaps
 rust-bitmap makes it really easy to read in bitmaps and edit them. To load a
 bitmap from a file just pass in the string to the file. It's also possible to
 create plain white in memory bitmaps as well.
@@ -26,16 +26,15 @@ use rustbitmap::BitMap;
 use rustbitmap::Rgba;
 
 fn main() {
-   // load bitmap from file
-   let bitmap = BitMap::read("example.bmp").unwrap();
+    // load bitmap from file
+    let bitmap = BitMap::read("example.bmp").unwrap();
 
-   // create a new bitmap that is 24 pixels by 24 pixels
-   let bitmap = BitMap::new(24, 24).unwrap();
+    // create a new bitmap that is 24 pixels by 24 pixels
+    let bitmap = BitMap::new(24, 24);
 
-   // create 2 by 2 bitmap that is colored all black
-   let bitmap = BitMap::create(2, 2,
-      [Rgba::black, Rgba::black, Rgba::black, Rgba::black]
-   ).unwrap();
+    // create 2 by 2 bitmap that is colored all black
+    let pixels: Vec<Rgba> = vec![Rgba::black(), Rgba::white(), Rgba::white(), Rgba::black()];
+    let bitmap = BitMap::create(2, 2, pixels).unwrap();
 }
 ```
 
@@ -51,9 +50,11 @@ extern crate rustbitmap;
 use rustbitmap::BitMap;
 
 fn main() {
-   let bitmap = BitMap::new(24, 24).unwrap();
+   let bitmap = BitMap::new(24, 24);
+
    // the bitmap will be saved as a 24 bit image
    bitmap.save_as("24_bit_white_square.bmp").unwrap();
+   
    // because the image is just a white square, it will be saved as a 1 bit image
    bitmap.simplify_and_save_as("1_bit_white_square.bmp").unwrap();
 }

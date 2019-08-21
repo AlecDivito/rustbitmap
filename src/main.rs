@@ -1,7 +1,6 @@
 extern crate rustbitmap;
 
 use rustbitmap::BitMap;
-use rustbitmap::Rgba;
 
 fn main() {
     // part 1, read and write files

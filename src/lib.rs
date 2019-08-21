@@ -1,5 +1,5 @@
 //!
-//! Filler Documentation about crate
+//! A rust library that can read, write and edit bitmap files.
 //!
 #![deny(
     missing_docs,
@@ -13,16 +13,9 @@
     unused_qualifications
 )]
 ///
-/// Other filler documentation
+/// Read, write and edit bitmaps
 ///
 pub mod bitmap;
 
-///
-/// Other filler documentation
-///
 pub use bitmap::image::BitMap;
-
-///
-/// Other filler documentation
-///
 pub use bitmap::rgba::Rgba;
