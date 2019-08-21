@@ -21,9 +21,17 @@ impl BitMap {
     ///
     /// Create a bitmap by reading in a .bmp file
     ///
-    pub fn read(filename: &str) -> Option<BitMap> {
-        let file = File::read(filename).unwrap();
-        Some(BitMap {
+    /// Fails if filename doesn't end with ".bmp"
+    ///
+    pub fn read(filename: &str) -> Result<BitMap, String> {
+        if !filename.ends_with(".bmp") {
+            return Err(String::from("File must end with '.bmp'"));
+        }
+        let file = match File::read(filename) {
+            Err(why) => return Err(why),
+            Ok(f) => f,
+        };
+        Ok(BitMap {
             filename: Some(String::from(filename)),
             width: file.get_width(),
             height: file.get_height(),
@@ -663,6 +671,11 @@ impl std::fmt::Display for BitMap {
 mod test {
     use super::BitMap;
     use super::Rgba;
+
+    #[test]
+    fn try_to_read_in_file_that_doesnt_end_with_bmp() {
+        assert_eq!(BitMap::read("example.txt").is_err(), true);
+    }
 
     #[test]
     fn get_all_unique_colors() {

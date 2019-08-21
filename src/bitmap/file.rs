@@ -17,13 +17,29 @@ impl File {
     ///
     /// Read in Bitmap file from file
     ///
-    pub fn read(filename: &str) -> Option<File> {
-        let array = std::fs::read(filename).expect("Couldn't open file");
+    pub fn read(filename: &str) -> Result<File, String> {
+        use std::io::ErrorKind;
+        let array = match std::fs::read(filename) {
+            Err(why) => {
+                return Err(String::from(match why.kind() {
+                    ErrorKind::NotFound => format!("File {} was not found!", filename),
+                    ErrorKind::PermissionDenied => format!(
+                        "Could not read file {} because program lacks privilege!",
+                        filename
+                    ),
+                    _ => format!("Couldn't read file {}!", filename),
+                }))
+            }
+            Ok(bytes) => bytes,
+        };
         let file = FileHeader::stream(&array);
         let info = InfoHeader::stream(&array);
         let colors = RgbQuad::stream(&array, &file, &info);
-        let data = FileData::stream(&array, &file, &info, &colors)?;
-        Some(File {
+        let data = match FileData::stream(&array, &file, &info, &colors) {
+            Some(d) => d,
+            None => return Err(String::from("Couldn't read in pixels from file"))
+        };
+        Ok(File {
             file,
             info,
             colors,

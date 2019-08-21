@@ -1,3 +1,12 @@
+//!
+//! Note, tried to get this to work with u32::from_le_bytes
+//! but that had an issue with some values
+//! 
+//! Currently the unsafe method works so we are keeping with it
+//! 
+//! TODO: More testing
+//! 
+
 pub fn byte_slice_from_u32(value: u32) -> [u8; 4] {
     unsafe { std::mem::transmute::<u32, [u8; 4]>(value.to_le()) }
 }
