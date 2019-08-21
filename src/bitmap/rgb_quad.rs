@@ -8,17 +8,34 @@ pub struct RgbQuad {
     data: Vec<Rgba>,
 }
 
+///
+/// Used for constants
+///
+impl RgbQuad {
+    pub fn single_rgb_quad_size() -> usize {
+        4
+    }
+}
+
+///
+/// Core implementation
+///
 impl RgbQuad {
     ///
-    /// From a stream of bytes, read in a list of colors used to render the
+    /// From a from_slice of bytes, read in a list of colors used to render the
     /// bitmap image
     ///
-    pub fn stream(bit_stream: &[u8], file: &FileHeader, info: &InfoHeader) -> RgbQuad {
+    pub fn from_slice(bit_stream: &[u8]) -> Result<RgbQuad, &'static str> {
+        if bit_stream.len() == 0 {
+            return Ok(RgbQuad::empty());
+        }
         let mut data = Vec::new();
-        let offset = file.get_byte_size() + info.get_info_size();
-
-        for index in 0..info.get_colors_used() {
-            let i: usize = ((index * 4) + offset) as usize;
+        if bit_stream.len() % 4 != 0 {
+            return Err("Not enough data to parse Rgb quad colors");
+        }
+        let colors_used = bit_stream.len() / 4;
+        for index in 0..colors_used {
+            let i: usize = index * 4;
             data.push(Rgba::bgra(
                 bit_stream[i],
                 bit_stream[i + 1],
@@ -27,7 +44,7 @@ impl RgbQuad {
             ));
         }
 
-        RgbQuad { data }
+        Ok(RgbQuad { data })
     }
 
     ///
@@ -36,7 +53,7 @@ impl RgbQuad {
     ///
     pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> RgbQuad {
         match bit_depth {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => RgbQuad {
+            BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => RgbQuad {
                 data: bitmap.get_all_unique_colors(),
             },
             _ => RgbQuad::empty(),
@@ -92,7 +109,10 @@ impl std::fmt::Display for RgbQuad {
 
 #[cfg(test)]
 mod test {
+    use super::BitDepth;
+    use super::BitMap;
     use super::RgbQuad;
+    use super::Rgba;
 
     #[test]
     fn rgb_quad_byte_size() {
@@ -110,5 +130,30 @@ mod test {
     fn rgb_quad_colors_length() {
         let q = RgbQuad::empty();
         assert_eq!(q.len(), 0);
+    }
+
+    #[test]
+    fn crating_a_rgb_quad_from_bitmap() {
+        let mut b = BitMap::new(2, 2);
+
+        let quad = RgbQuad::from(&b, BitDepth::Color2Bit);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        b.set_pixel(0, 0, Rgba::rgb(255, 0, 0)).unwrap();
+        b.set_pixel(1, 0, Rgba::rgb(0, 0, 255)).unwrap();
+        b.set_pixel(0, 1, Rgba::black()).unwrap();
+        let quad = RgbQuad::from(&b, BitDepth::Color16Bit);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        b.resize_by(20.0);
+        let quad = RgbQuad::from(&b, BitDepth::AllColors);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        let quad = RgbQuad::from(&b, BitDepth::AllColorsAndShades);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
+
+        b.color_to_gray();
+        let quad = RgbQuad::from(&b, BitDepth::Color256Bit);
+        assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
     }
 }

@@ -51,20 +51,24 @@ fn main() {
     // bitmap.rotate_left();
     // bitmap.save_as("new-5.bmp").unwrap();
 
-    let red = Rgba::rgb(255, 0, 0);
-    let blue = Rgba::rgb(0, 0, 255);
-    let green = Rgba::rgb(0, 255, 0);
+    // let red = Rgba::rgb(255, 0, 0);
+    // let blue = Rgba::rgb(0, 0, 255);
+    // let green = Rgba::rgb(0, 255, 0);
 
-    let mut b = BitMap::new(2, 2);
-    b.set_pixel(0, 0, Rgba::white()).unwrap();
-    b.set_pixel(1, 0, /*Rgba::black()*/ red).unwrap();
-    b.set_pixel(0, 1, /*Rgba::black()*/ blue).unwrap();
-    b.set_pixel(1, 1, /*Rgba::white()*/ green).unwrap();
-    b.resize_by(25.0);
+    // let mut b = BitMap::new(2, 2);
+    // b.set_pixel(0, 0, Rgba::white()).unwrap();
+    // b.set_pixel(1, 0, /*Rgba::black()*/ red).unwrap();
+    // b.set_pixel(0, 1, /*Rgba::black()*/ blue).unwrap();
+    // b.set_pixel(1, 1, /*Rgba::white()*/ green).unwrap();
+    // b.resize_by(25.0);
     // b.color_to_gray();
-    b.simplify_and_save_as("hahahaha_stay_in_the_light.bmp")
-        .unwrap();
-    b.save_as("hahahaha_stay_in_the_light2.bmp").unwrap();
+    // b.simplify_and_save_as("hahahaha_stay_in_the_light.bmp")
+    //     .unwrap();
+    // b.save_as("hahahaha_stay_in_the_light2.bmp").unwrap();
+
+    for i in 0..256 {
+        println!("{}", i);
+    }
 
     // let mut bitmap = BitMap::read("./test.bmp").unwrap();
     // bitmap.rotate_right();

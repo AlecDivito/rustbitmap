@@ -1,5 +1,4 @@
 use super::bit_depth::BitDepth;
-use super::file_header::FileHeader;
 use super::image::BitMap;
 use super::info_header::InfoHeader;
 use super::rgb_quad::RgbQuad;
@@ -27,19 +26,17 @@ pub struct BitData {
 
 impl BitData {
     ///
-    /// Create bit data from stream of bytes
+    /// Create bit data from from_slice of bytes
+    /// and some data that supports it
     ///
-    pub fn stream(
+    pub fn from_slice(
         bit_stream: &[u8],
-        file: &FileHeader,
         info: &InfoHeader,
         bit_depth: BitDepth,
         colors: &RgbQuad,
     ) -> BitData {
-        let offset = file.get_off_bits() as usize;
-        // for byte in offset..bits
         let mut bytes = Vec::new();
-        for index in offset..bit_stream.len() {
+        for index in 0..bit_stream.len() {
             bytes.push(bit_stream[index]);
         }
         BitData {
@@ -87,7 +84,7 @@ impl BitData {
             if step != 8 {
                 byte = byte << step;
             }
-            // if bit_depth is a BW then we want to push the bit onto the byte
+            // if bit_depth is a Color2Bit then we want to push the bit onto the byte
             byte += color_index;
 
             // push byte into data
@@ -109,8 +106,10 @@ impl BitData {
                 }
             }
         }
-        if shift != 0 {
-            byte = byte << (8 - shift);
+        if shift != 0 || (bit_depth == BitDepth::Color256Bit && bitmap.get_size() == 1) {
+            if step != 8 {
+                byte = byte << (8 - shift);
+            }
             bytes.push(byte);
         }
         if bytes.len() % 4 != 0 {
@@ -129,7 +128,7 @@ impl BitData {
     }
 
     ///
-    /// Pass the bit data back as a stream of bytes
+    /// Pass the bit data back as a from_slice of bytes
     ///
     pub fn as_bytes(&self) -> Vec<u8> {
         self.bytes.clone()
@@ -204,10 +203,16 @@ impl BitData {
         pixels
     }
 
+    ///
+    /// Get the total length of bit data
+    ///
     pub fn len(&self) -> usize {
         self.bytes.len()
     }
 
+    ///
+    /// Get the size of bit data in bytes
+    ///
     pub fn get_bytes_size(&self) -> u32 {
         self.bytes.len() as u32
     }
@@ -220,5 +225,115 @@ impl std::fmt::Display for BitData {
             write!(f, "{}:\t{:#b}\n", p, self.bytes[p]).unwrap();
         }
         write!(f, "")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::BitData;
+    use super::BitDepth;
+    use super::BitMap;
+    use super::Rgba;
+
+    #[test]
+    fn get_length_of_bit_data_length_2_bit_depth() {
+        let b = BitMap::new(10, 10);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
+        assert_eq!(data.len(), 43);
+        assert_eq!(data.get_bytes_size(), 43);
+        let b = BitMap::new(1, 1);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
+        assert_eq!(data.len(), 4);
+        assert_eq!(data.get_bytes_size(), 4);
+    }
+
+    #[test]
+    fn get_length_of_bit_data_length_16_bit_depth() {
+        let b = BitMap::new(10, 10);
+        let data = BitData::from_bitmap(&b, BitDepth::Color16Bit);
+        assert_eq!(data.len(), 80);
+        assert_eq!(data.get_bytes_size(), 80);
+        let b = BitMap::new(1, 1);
+        let data = BitData::from_bitmap(&b, BitDepth::Color16Bit);
+        assert_eq!(data.len(), 4);
+        assert_eq!(data.get_bytes_size(), 4);
+    }
+
+    #[test]
+    fn get_length_of_bit_data_length_256_bit_depth() {
+        let b = BitMap::new(10, 10);
+        let data = BitData::from_bitmap(&b, BitDepth::Color256Bit);
+        assert_eq!(data.len(), 121);
+        assert_eq!(data.get_bytes_size(), 121);
+        let b = BitMap::new(1, 1);
+        let data = BitData::from_bitmap(&b, BitDepth::Color256Bit);
+        assert_eq!(data.len(), 4);
+        assert_eq!(data.get_bytes_size(), 4);
+    }
+
+    #[test]
+    fn get_bit_data_as_rgb_bit_depth_2() {
+        let b = BitMap::new(10, 10);
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
+        let colors = data.as_rgba();
+        for i in 0..b.get_size() {
+            assert!(&colors[i as usize] == &Rgba::white());
+        }
+
+        let mut b = BitMap::new(2, 1);
+        b.set_pixel(0, 0, Rgba::black()).unwrap();
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
+        let colors = data.as_rgba();
+        assert!(&colors[0] == &Rgba::black());
+        assert!(&colors[1] == &Rgba::white());
+    }
+
+    #[test]
+    fn get_bit_data_as_rgb_bit_depth_16() {
+        let b = BitMap::new(10, 10);
+        let data = BitData::from_bitmap(&b, BitDepth::Color16Bit);
+        let colors = data.as_rgba();
+        for i in 0..b.get_size() {
+            assert!(&colors[i as usize] == &Rgba::white());
+        }
+
+        let mut b = BitMap::new(4, 1);
+        b.set_pixel(0, 0, Rgba::black()).unwrap();
+        b.set_pixel(1, 0, Rgba::rgb(255, 0, 0)).unwrap();
+        b.set_pixel(2, 0, Rgba::rgb(0, 0, 255)).unwrap();
+        let data = BitData::from_bitmap(&b, BitDepth::Color16Bit);
+        let colors = data.as_rgba();
+        assert!(&colors[0] == &Rgba::black());
+        assert!(&colors[1] == &Rgba::rgb(255, 0, 0));
+        assert!(&colors[2] == &Rgba::rgb(0, 0, 255));
+        assert!(&colors[3] == &Rgba::white());
+    }
+
+    #[test]
+    fn get_bit_data_as_rgb_bit_depth_256() {
+        let b = BitMap::new(10, 10);
+        let data = BitData::from_bitmap(&b, BitDepth::Color256Bit);
+        let colors = data.as_rgba();
+        for i in 0..b.get_size() {
+            assert!(&colors[i as usize] == &Rgba::white());
+        }
+    }
+
+    #[test]
+    fn get_bit_data_as_bytes() {
+        let b = BitMap::new(10, 10);
+
+        let data = BitData::from_bitmap(&b, BitDepth::Color2Bit);
+        for i in 0..data.as_bytes().len() {
+            assert!(data.as_bytes()[i] == 0);
+        }
+        let data = BitData::from_bitmap(&b, BitDepth::Color16Bit);
+        for i in 0..data.as_bytes().len() {
+            assert!(data.as_bytes()[i] == 0);
+        }
+        let data = BitData::from_bitmap(&b, BitDepth::Color256Bit);
+        for i in 0..data.as_bytes().len() {
+            assert!(data.as_bytes()[i] == 0);
+        }
     }
 }

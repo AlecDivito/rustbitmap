@@ -21,13 +21,21 @@ impl BitMap {
     ///
     /// Create a bitmap by reading in a .bmp file
     ///
-    pub fn read(filename: &str) -> Option<BitMap> {
-        let file = File::read(filename).unwrap();
-        Some(BitMap {
+    /// Fails if filename doesn't end with ".bmp"
+    ///
+    pub fn read(filename: &str) -> Result<BitMap, String> {
+        if !filename.ends_with(".bmp") {
+            return Err(String::from("File must end with '.bmp'"));
+        }
+        let file = match File::read(filename) {
+            Err(why) => return Err(why),
+            Ok(f) => f,
+        };
+        Ok(BitMap {
             filename: Some(String::from(filename)),
-            width: file.get_info_header().get_width(),
-            height: file.get_info_header().get_height(),
-            pixels: file.get_pixels().as_rgba(),
+            width: file.get_width(),
+            height: file.get_height(),
+            pixels: file.get_bitmap_as_pixels(),
         })
     }
 
@@ -50,21 +58,21 @@ impl BitMap {
     /// Create a new image from a list of pixels
     /// TODO: Added Error handling if there are not enough pixels
     ///
-    pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> BitMap // Result<BitMap, &'static str>
-    {
+    pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> Result<BitMap, &'static str> {
         // TODO: fix issue where pixels aren't in the correct position
         //       pixels need to be in a bitmap format or else the api wont work
         //
-        // if width * height != pixels.len()
-        // {
-        //     return Err("The area must match the ")
-        // }
-        BitMap {
+        if (width * height) as usize != pixels.len() {
+            return Err(
+                "The area of the image must match the number of pixels you are passing in.",
+            );
+        }
+        Ok(BitMap {
             filename: None,
             width,
             height,
             pixels,
-        }
+        })
     }
 
     pub fn get_pixel(&self, x: u32, y: u32) -> Option<&Rgba> {
@@ -103,6 +111,13 @@ impl BitMap {
     }
 
     ///
+    /// Get the estimated file size in bytes
+    ///
+    pub fn get_estimated_file_size_in_bytes(&self) -> u32 {
+        File::create(self, BitDepth::AllColors).calculate_file_size()
+    }
+
+    ///
     /// Get a reference to the file name of the bitmap if it exists
     ///
     pub fn get_filename(&self) -> Option<&String> {
@@ -135,6 +150,9 @@ impl BitMap {
         unique_colors
     }
 
+    ///
+    /// Check if there is at least one pixel that it translucent
+    ///
     pub fn is_image_transparent(&self) -> bool {
         for c in &self.pixels {
             if c.is_transparent() {
@@ -154,30 +172,26 @@ impl BitMap {
     ///
     /// Fail if no original location is linked to the current bitmap
     ///
-    pub fn save(&self) -> Result<(), &'static str> {
+    pub fn save(&self) -> Result<(), String> {
         match self.filename.as_ref() {
-            Some(f) => match self.save_as(f) {
-                Ok(_) => Ok(()),
-                Err(_) => Err("Error saving file to disk."),
-            },
-            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
+            Some(f) => self.save_as(f),
+            None => Err(String::from(
+                "Couldn't save image because you didn't read in the bitmap from an image",
+            )),
         }
     }
 
     ///
     /// Save the image to a new location on disk
     ///
-    pub fn save_as(&self, filename: &str) -> Result<(), &'static str> {
+    pub fn save_as(&self, filename: &str) -> Result<(), String> {
         // check to see if any pixels are transparent
         let bit_depth = if self.is_image_transparent() {
             BitDepth::AllColorsAndShades
         } else {
             BitDepth::AllColors
         };
-        match self.save_as_file(filename, bit_depth) {
-            Ok(_) => Ok(()),
-            Err(_) => Err("Error saving file to disk."),
-        }
+        self.save_as_file(filename, bit_depth)
     }
 
     ///
@@ -191,15 +205,14 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    pub fn simplify_and_save(&self) -> Result<(), &'static str> {
+    pub fn simplify_and_save(&self) -> Result<(), String> {
         let bit_depth = BitDepth::get_suggested_bit_depth(self);
 
         match self.filename.as_ref() {
-            Some(f) => match self.save_as_file(f, bit_depth) {
-                Ok(_) => Ok(()),
-                Err(_) => Err("Error saving file to disk."),
-            },
-            None => Err("Couldn't save image because you didn't read in the bitmap from an image"),
+            Some(f) => self.save_as_file(f, bit_depth),
+            None => Err(String::from(
+                "Couldn't save image because you didn't read in the bitmap from an image",
+            )),
         }
     }
 
@@ -214,26 +227,33 @@ impl BitMap {
     /// if there are more then 256 colors and all alphas are 100, 24 bit
     /// if there are more then 256 colors and at least one alpha is not 100, 32 bit
     ///
-    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), &'static str> {
+    pub fn simplify_and_save_as(&self, filename: &str) -> Result<(), String> {
         let bit_depth = BitDepth::get_suggested_bit_depth(self);
-
-        match self.save_as_file(filename, bit_depth) {
-            Ok(_) => Ok(()),
-            Err(_) => Err("Error saving file to disk."),
-        }
+        self.save_as_file(filename, bit_depth)
     }
 
     ///
     /// Actually save the file using the given filename and bit depth
     ///
-    fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> std::io::Result<()> {
+    fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> Result<(), String> {
         let file = File::create(self, bit_depth);
-        println!("{}", file);
+        use std::error::Error;
         use std::io::Write;
         let mut bit_stream = unsafe { file.to_bytes() };
-        let mut file = std::fs::File::create(filename)?;
-        file.write_all(bit_stream.as_mut_slice())?;
-        Ok(())
+        let mut file = match std::fs::File::create(filename) {
+            Err(why) => {
+                return Err(
+                    format!("Couldn't create {}: {}", filename, why.description()).to_owned(),
+                )
+            }
+            Ok(file) => file,
+        };
+        match file.write_all(bit_stream.as_mut_slice()) {
+            Err(why) => {
+                Err(format!("Couldn't write to {}: {}", filename, why.description()).to_owned())
+            }
+            Ok(_) => Ok(()),
+        }
     }
 }
 
@@ -289,7 +309,10 @@ impl BitMap {
             }
         }
 
-        Ok(BitMap::create(width, height, colors))
+        match BitMap::create(width, height, colors) {
+            Err(why) => Err(why),
+            Ok(b) => Ok(b),
+        }
     }
 
     ///
@@ -324,7 +347,7 @@ impl BitMap {
 }
 
 ///
-/// This implementation block deals with coloring the image
+/// This block deals with coloring the image
 ///
 impl BitMap {
     ///
@@ -422,8 +445,9 @@ impl BitMap {
 }
 
 ///
-/// This implementation block is only meant for resizing images using one of the
-/// 3 (so far only 2 implemented) algorithms (nearest neighbor, bilinear, bicubic)
+/// This block is only meant for resizing images using one of the 3 (so far only
+/// 2 implemented) algorithms (nearest neighbor, bilinear, bicubic) as well as
+/// rotating the image left or right by 90 degrees
 ///
 impl BitMap {
     ///
@@ -653,6 +677,17 @@ mod test {
     use super::Rgba;
 
     #[test]
+    fn try_to_read_in_file_that_doesnt_end_with_bmp() {
+        assert_eq!(BitMap::read("example.txt").is_err(), true);
+    }
+
+    #[test]
+    fn not_enough_pixels_to_create_image() {
+        let b = BitMap::create(2, 2, Vec::new());
+        assert!(b.is_err());
+    }
+
+    #[test]
     fn get_all_unique_colors() {
         let result = BitMap::new(100, 100).get_all_unique_colors();
         assert_eq!(result.len(), 1);
@@ -786,11 +821,49 @@ mod test {
     }
 
     #[test]
+    fn test_resize_to() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.resize_to(10, 10);
+        assert_eq!(bitmap.get_width(), 10);
+        assert_eq!(bitmap.get_height(), 10);
+    }
+
+    #[test]
+    fn test_resize_by() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.resize_by(8.0);
+        assert_eq!(bitmap.get_width(), 16);
+        assert_eq!(bitmap.get_height(), 16);
+        bitmap.resize_by(0.25);
+        assert_eq!(bitmap.get_width(), 4);
+        assert_eq!(bitmap.get_height(), 4);
+    }
+
+    #[test]
+    fn test_fast_resize_to() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.fast_resize_to(10, 10);
+        assert_eq!(bitmap.get_width(), 10);
+        assert_eq!(bitmap.get_height(), 10);
+    }
+
+    #[test]
+    fn test_fast_resize_by() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.fast_resize_by(8.0);
+        assert_eq!(bitmap.get_width(), 16);
+        assert_eq!(bitmap.get_height(), 16);
+        bitmap.fast_resize_by(0.25);
+        assert_eq!(bitmap.get_width(), 4);
+        assert_eq!(bitmap.get_height(), 4);
+    }
+
+    #[test]
     fn rotate_image_left() {
         let gray = Rgba::rgb(127, 127, 127);
         let red = Rgba::rgb(255, 0, 0);
         let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
-        let mut bitmap = BitMap::create(4, 1, pixels);
+        let mut bitmap = BitMap::create(4, 1, pixels).unwrap();
         let temp_width = bitmap.get_width();
         let temp_height = bitmap.get_height();
         bitmap.rotate_left();
@@ -807,7 +880,7 @@ mod test {
         let gray = Rgba::rgb(127, 127, 127);
         let red = Rgba::rgb(255, 0, 0);
         let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
-        let mut bitmap = BitMap::create(4, 1, pixels);
+        let mut bitmap = BitMap::create(4, 1, pixels).unwrap();
         let temp_width = bitmap.get_width();
         let temp_height = bitmap.get_height();
         bitmap.rotate_right();

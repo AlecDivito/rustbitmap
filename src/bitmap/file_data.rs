@@ -1,6 +1,5 @@
 use super::bit_data::BitData;
 use super::bit_depth::BitDepth;
-use super::file_header::FileHeader;
 use super::image::BitMap;
 use super::info_header::InfoHeader;
 use super::pixel_data::PixelData;
@@ -14,22 +13,17 @@ pub enum FileData {
 
 impl FileData {
     ///
-    /// Read in bytes from a stream and convert it into image data (pixels)
+    /// Read in bytes from a from_slice and convert it into image data (pixels)
     ///
-    pub fn stream(
-        bit_stream: &[u8],
-        file: &FileHeader,
-        info: &InfoHeader,
-        colors: &RgbQuad,
-    ) -> Option<FileData> {
+    pub fn from_slice(bit_stream: &[u8], info: &InfoHeader, colors: &RgbQuad) -> Option<FileData> {
         match info.get_bit_depth() {
             Some(b) => match b {
-                BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => Some(
-                    FileData::Bits(BitData::stream(bit_stream, file, info, b, colors)),
+                BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => Some(
+                    FileData::Bits(BitData::from_slice(bit_stream, info, b, colors)),
                 ),
-                BitDepth::AllColors | BitDepth::AllColorsAndShades => Some(FileData::Pixels(
-                    PixelData::stream(bit_stream, file, info, b),
-                )),
+                BitDepth::AllColors | BitDepth::AllColorsAndShades => {
+                    Some(FileData::Pixels(PixelData::from_slice(bit_stream, info, b)))
+                }
             },
             None => None,
         }
@@ -40,7 +34,7 @@ impl FileData {
     ///
     pub fn from_bitmap(bitmap: &BitMap, bit_depth: BitDepth) -> FileData {
         match bit_depth {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => {
+            BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => {
                 FileData::Bits(BitData::from_bitmap(bitmap, bit_depth))
             }
             _ => FileData::Pixels(PixelData::from_bitmap(bitmap, bit_depth)),

@@ -11,6 +11,22 @@ pub struct FileHeader {
     off_bits: u32,
 }
 
+///
+/// Used for constants
+///
+impl FileHeader {
+    pub fn from_slice_range() -> std::ops::Range<usize> {
+        0..14
+    }
+
+    pub fn estimated_byte_size() -> usize {
+        14
+    }
+}
+
+///
+/// Core implementation
+///
 impl FileHeader {
     ///
     /// Create a new Bit Map File Header
@@ -32,21 +48,24 @@ impl FileHeader {
     }
 
     ///
-    /// Create a new Bit Map File Header from stream of bytes
+    /// Create a new Bit Map File Header from from_slice of bytes
     ///
     /// @param {&[u8; 14]} 14 byte long slice
     /// @return {FileHeader}
     ///
-    pub fn stream(bit_stream: &[u8]) -> FileHeader {
+    pub fn from_slice(bit_stream: &[u8]) -> Result<FileHeader, &'static str> {
+        if bit_stream.len() < 14 {
+            return Err("Error reading file header, not enough data found!");
+        }
         let bitmap_type = [bit_stream[0] as char, bit_stream[1] as char];
         let mut i = 2;
-        FileHeader {
+        Ok(FileHeader {
             bitmap_type,
             size: util::byte_slice_to_u32(bit_stream, &mut i),
             reserved1: util::byte_slice_to_u16(bit_stream, &mut i),
             reserved2: util::byte_slice_to_u16(bit_stream, &mut i),
             off_bits: util::byte_slice_to_u32(bit_stream, &mut i),
-        }
+        })
     }
 
     ///
@@ -66,10 +85,6 @@ impl FileHeader {
         14
     }
 
-    pub fn _get_size(&self) -> u32 {
-        self.size
-    }
-
     pub fn get_off_bits(&self) -> u32 {
         self.off_bits
     }
@@ -87,5 +102,16 @@ impl std::fmt::Display for FileHeader {
             self.reserved2,
             self.off_bits
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::FileHeader;
+
+    #[test]
+    fn file_header_byte_size() {
+        let header = FileHeader::new(10, 10, 10);
+        assert_eq!(header.as_bytes().len(), header.get_byte_size() as usize);
     }
 }

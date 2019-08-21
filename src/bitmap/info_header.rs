@@ -1,4 +1,5 @@
 use super::bit_depth::BitDepth;
+use super::file_header::FileHeader;
 use super::util;
 
 use super::image::BitMap;
@@ -38,13 +39,30 @@ pub struct InfoHeader {
     colors_important: u32,
 }
 
+///
+/// Used for constants
+///
+impl InfoHeader {
+    pub fn from_slice_range() -> std::ops::Range<usize> {
+        let prefix = FileHeader::estimated_byte_size();
+        prefix..(prefix + InfoHeader::estimated_byte_size())
+    }
+
+    pub fn estimated_byte_size() -> usize {
+        40
+    }
+}
+
+///
+/// Core implementation
+///
 impl InfoHeader {
     ///
     /// Create a header based on a bitmap.
     ///
     pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> InfoHeader {
         let colors_used = match bit_depth {
-            BitDepth::BW | BitDepth::Color16Bit | BitDepth::Color256Bit => {
+            BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => {
                 bitmap.get_all_unique_colors().len()
             }
             _ => 0,
@@ -65,7 +83,7 @@ impl InfoHeader {
     }
 
     ///
-    /// Read in header based on stream of bytes
+    /// Read in header based on from_slice of bytes
     ///
     /// Bytes should be in correct order
     ///
@@ -81,10 +99,13 @@ impl InfoHeader {
     /// 10. colors_used as a u32
     /// 11. colors_important as a u32
     ///
-    pub fn stream(bit_stream: &[u8]) -> InfoHeader {
+    pub fn from_slice(bit_stream: &[u8]) -> Result<InfoHeader, &'static str> {
         // starts at 14
-        let mut i: usize = 14;
-        InfoHeader {
+        let mut i: usize = 0;
+        if bit_stream.len() < 40 {
+            return Err("Error reading info header, not enough data found!");
+        }
+        Ok(InfoHeader {
             size: util::byte_slice_to_u32(bit_stream, &mut i),
             width: util::byte_slice_to_u32(bit_stream, &mut i),
             height: util::byte_slice_to_u32(bit_stream, &mut i),
@@ -96,7 +117,7 @@ impl InfoHeader {
             y_pixels_per_meter: util::byte_slice_to_u32(bit_stream, &mut i),
             colors_used: util::byte_slice_to_u32(bit_stream, &mut i),
             colors_important: util::byte_slice_to_u32(bit_stream, &mut i),
-        }
+        })
     }
 
     ///
@@ -126,7 +147,7 @@ impl InfoHeader {
     ///
     /// Get the size of the information header in bytes
     ///
-    pub fn get_info_size(&self) -> u32 {
+    pub fn get_byte_size(&self) -> u32 {
         self.size
     }
 
@@ -135,7 +156,7 @@ impl InfoHeader {
     ///
     pub fn get_bit_depth(&self) -> Option<BitDepth> {
         match self.bit_depth {
-            1 => Some(BitDepth::BW),
+            1 => Some(BitDepth::Color2Bit),
             4 => Some(BitDepth::Color16Bit),
             8 => Some(BitDepth::Color256Bit),
             24 => Some(BitDepth::AllColors),
@@ -198,10 +219,45 @@ mod test {
     use super::InfoHeader;
 
     #[test]
+    fn get_correct_bit_depth() {
+        let b = BitMap::new(10, 10);
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::Color2Bit)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::Color2Bit
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::Color16Bit)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::Color16Bit
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::Color256Bit)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::Color256Bit
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::AllColors)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::AllColors
+        );
+        assert_eq!(
+            InfoHeader::from(&b, BitDepth::AllColorsAndShades)
+                .get_bit_depth()
+                .unwrap(),
+            BitDepth::AllColorsAndShades
+        );
+    }
+
+    #[test]
     fn get_info_size_in_bytes_after_bitmap_conversion() {
         let b = BitMap::new(10, 10);
         let data = InfoHeader::from(&b, BitDepth::AllColors);
-        assert_eq!(data.get_info_size(), 40);
+        assert_eq!(data.get_byte_size(), 40);
     }
 
     #[test]

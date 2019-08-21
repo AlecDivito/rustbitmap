@@ -1,7 +1,6 @@
 use std::ops::{Index, IndexMut};
 
 use super::bit_depth::BitDepth;
-use super::file_header::FileHeader;
 use super::image::BitMap;
 use super::info_header::InfoHeader;
 use super::rgba::Rgba;
@@ -30,27 +29,22 @@ impl PixelData {
     }
 
     ///
+    /// Create pixel data from slice of bytes
+    /// and some data that supports it
     ///
-    ///
-    pub fn stream(
-        bit_stream: &[u8],
-        file: &FileHeader,
-        info: &InfoHeader,
-        bit_depth: BitDepth,
-    ) -> PixelData {
+    pub fn from_slice(bit_stream: &[u8], info: &InfoHeader, bit_depth: BitDepth) -> PixelData {
         // check the bit_stream length and compare it to how big the file is
         // supposed to be
         let mut pixels: Vec<Rgba> = Vec::new();
-        let offset = file.get_off_bits();
         let padding = PixelData::get_row_padding_size(info.get_width(), bit_depth);
-        let step = bit_depth.get_step_counter();
+        let step = bit_depth.get_step_counter() as usize;
         let mut counter = 0;
 
         for _ in 0..info.get_height() {
             for _ in 0..info.get_width() {
                 // TODO: check if the number of bytes needed exists
                 //       If they don't, throw error
-                let i = (offset + counter) as usize;
+                let i = counter;
                 let pixel = match bit_depth {
                     BitDepth::AllColors => {
                         Rgba::bgr(bit_stream[i], bit_stream[i + 1], bit_stream[i + 2])
@@ -66,7 +60,7 @@ impl PixelData {
                 pixels.push(pixel);
                 counter += step;
             }
-            counter += padding;
+            counter += padding as usize;
         }
         PixelData {
             pixels,

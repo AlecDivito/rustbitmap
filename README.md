@@ -1,6 +1,6 @@
 # rusty-bitmap
 [![Build Status](https://travis-ci.org/AlecDivito/rusty-bitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rusty-bitmap)
-[![codecov.io](https://codecov.io/github/AlecDivto/rusty-bitmap/coverage.svg?branch=master)](https://codecov.io/github/AlecDivito/rusty-bitmap?branch=master)
+[![codecov](https://codecov.io/gh/AlecDivito/rusty-bitmap/branch/master/graph/badge.svg)](https://codecov.io/gh/AlecDivito/rusty-bitmap)
 <br>
 Just a simple bitmap file reader. Easily read in bitmaps of any size, edit them anyway you like and save them to any bitcount you want.
 
