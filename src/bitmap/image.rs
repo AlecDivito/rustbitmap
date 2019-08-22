@@ -3,7 +3,7 @@ use super::file::File;
 use super::rgba::Rgba;
 
 ///
-/// This is how you use bitmap
+/// In memory representation of a bitmap allowing for easier editing
 ///
 pub struct BitMap {
     /// file read from
@@ -455,8 +455,6 @@ impl BitMap {
     /// Resize the current image by using nearest neighbor algorithm. Scale image
     /// to image size * the factor
     ///
-    /// @param {f32} scaling factor to apply to image
-    ///
     pub fn fast_resize_by(&mut self, factor: f32) {
         let width = (factor * (self.width as f32)).round();
         let height = (factor * (self.height as f32)).round();
@@ -467,18 +465,12 @@ impl BitMap {
     /// Resize the current image by using nearest neighbor algorithm. Scale image
     /// to specified width and height
     ///
-    /// @param {u32} new image width
-    /// @param {u32} new image height
-    ///
     pub fn fast_resize_to(&mut self, width: u32, height: u32) {
         self.fast_resize(width, height);
     }
 
     ///
     /// Resize the image by using a nearest neighbor algorithm
-    ///
-    /// @param {u32} new image width
-    /// @param {u32} new image height
     ///
     fn fast_resize(&mut self, width: u32, height: u32) {
         // image 1 (currently loaded image)
@@ -511,8 +503,6 @@ impl BitMap {
     /// Resize the current image by using bilinear interpolation algorithm. Scale
     /// image to image size * the factor
     ///
-    /// @param {f32} scaling factor to apply to image
-    ///
     pub fn resize_by(&mut self, factor: f32) {
         let width = (factor * (self.width as f32)).round();
         let height = (factor * (self.height as f32)).round();
@@ -523,9 +513,6 @@ impl BitMap {
     /// Resize the current image by using bilinear interpolation algorithm. Scale
     /// image to specified width and height
     ///
-    /// @param {u32} new image width
-    /// @param {u32} new image height
-    ///
     pub fn resize_to(&mut self, width: u32, height: u32) {
         self.resize(width, height);
     }
@@ -533,15 +520,14 @@ impl BitMap {
     ///
     /// Resize the image by using a Bilinear interpolation algorithm
     ///
-    /// @param {u32} new image width
-    /// @param {u32} new image height
-    ///
     fn resize(&mut self, width: u32, height: u32) {
         // image 1 (currently loaded image)
         // image 2 (new image to be produced)
         let new_area = width * height;
         let mut i2: Vec<Rgba> = vec![Rgba::black(); new_area as usize];
 
+        // steps are created by finding how big or small our steps will need to
+        // be to convert the image from it's current size, to it's next size
         let step_x = std::cmp::max(self.width - 1, 1) as f32 / std::cmp::max(width - 1, 1) as f32;
         let step_y = std::cmp::max(self.height - 1, 1) as f32 / std::cmp::max(height - 1, 1) as f32;
 
@@ -552,10 +538,12 @@ impl BitMap {
                 // then just pick the nearest neighbor to (v, w)
                 let v = (x as f32) * step_x; // x of our next point
                 let w = (y as f32) * step_y; // y of our next point
-                let diff_x = v - v.floor();
-                let diff_x1 = 1.0 - diff_x;
-                let diff_y = w - w.floor();
-                let diff_y1 = 1.0 - diff_y;
+
+                // the factors decide how much influence one color has over the other
+                let diff_x = v - v.floor(); // factor for the right most pixel
+                let diff_x1 = 1.0 - diff_x; // factor for the left most pixel
+                let diff_y = w - w.floor(); // factor for the bottom
+                let diff_y1 = 1.0 - diff_y; // factor for the top
 
                 let index = ((y * width) + x) as usize;
 
@@ -573,22 +561,86 @@ impl BitMap {
                     index_4 = index_2;
                 }
 
-                let top = Rgba::blur(
+                let top = Rgba::linear_interpolation(
                     &self.pixels[index_2],
                     diff_x,
                     &self.pixels[index_1],
                     diff_x1,
                 )
                 .unwrap();
-                let bottom = Rgba::blur(
+                let bottom = Rgba::linear_interpolation(
                     &self.pixels[index_4],
                     diff_x,
                     &self.pixels[index_3],
                     diff_x1,
                 )
                 .unwrap();
-                let color = Rgba::blur(&bottom, diff_y, &top, diff_y1).unwrap();
+                let color = Rgba::linear_interpolation(&bottom, diff_y, &top, diff_y1).unwrap();
                 i2[index] = color;
+            }
+        }
+
+        self.width = width;
+        self.height = height;
+        self.pixels = i2;
+    }
+
+    ///
+    /// Resize the current image by using bicubic interpolation algorithm. Scale
+    /// image to image size * the factor
+    ///
+    pub fn slow_resize_by(&mut self, factor: f32) {
+        let width = (factor * (self.width as f32)).round();
+        let height = (factor * (self.height as f32)).round();
+        self.slow_resize(width as u32, height as u32);
+    }
+
+    ///
+    /// Resize the current image by using bicubic interpolation algorithm. Scale
+    /// image to specified width and height
+    ///
+    pub fn slow_resize_to(&mut self, width: u32, height: u32) {
+        self.slow_resize(width, height);
+
+    }
+
+    ///
+    /// Resize the current image by using bicubic interpolation algorithm
+    /// 
+    pub fn slow_resize(&mut self, width: u32, height: u32) {
+        let new_area = width * height;
+        let mut i2: Vec<Rgba> = vec![Rgba::black(); new_area as usize];
+
+        let step_x = std::cmp::max(self.width - 1, 1) as f32 / std::cmp::max(width - 1, 1) as f32;
+        let step_y = std::cmp::max(self.height - 1, 1) as f32 / std::cmp::max(height - 1, 1) as f32;
+
+        // write new image
+        for y in 0..height {
+            for x in 0..width {
+                // get the pixel index we are focusing on the new image
+                let new_index = ((y * width) + x) as usize;
+
+                // then just pick the nearest neighbor to (v, w)
+                let v = (x as f32) * step_x; // x of our next point
+                let w = (y as f32) * step_y; // y of our next point
+
+                let x_factor = v - v.floor();
+
+                // https://www.paulinternet.nl/?page=bicubic
+                // get the 3 colors from the old image
+                let old_index = ((w.floor() * self.width as f32) + v.floor()) as usize;
+                let p0 = if old_index <= 0 { old_index } else { old_index - 1 };
+                let p1 = old_index;
+                let p2 = if old_index + 1 >= self.width as usize { old_index } else { old_index + 1 };
+                let p3 = if old_index + 2 >= self.width as usize { old_index } else { old_index + 2 };
+
+                let color = Rgba::cubic_interpolate(&self.pixels[p0],
+                    &self.pixels[p1],
+                    &self.pixels[p2],
+                    &self.pixels[p3],
+                    x_factor);
+
+                i2[new_index] = color;
             }
         }
 

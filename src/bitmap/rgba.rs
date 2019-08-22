@@ -163,13 +163,13 @@ impl Rgba {
     /// By passing in different factors, you can effect how much one color will
     /// effect the other.
     ///
-    /// @param {&Rgba} first color to blur
+    /// @param {&Rgba} first color to linear_interpolation
     /// @param {f32} factor how much the first color will effect the outcome
-    /// @param {&Rgba} second color to blur
+    /// @param {&Rgba} second color to linear_interpolation
     /// @param {f32} factor how much the second color will effect the outcome
     /// @return {Rgba} new color of the 2 colors blurred together
     ///
-    pub fn blur(
+    pub fn linear_interpolation(
         lhs: &Rgba,
         lhs_factor: f32,
         rhs: &Rgba,
@@ -195,6 +195,49 @@ impl Rgba {
             blue: (lhs_blue + rhs_blue).round() as u8,
             alpha: (lhs_alpha + rhs_alpha).round() as u8,
         })
+    }
+
+    ///
+    /// oooffff
+    /// 
+    pub fn cubic_interpolate(
+        p0: &Rgba,
+        p1: &Rgba,
+        p2: &Rgba,
+        p3: &Rgba,
+        factor: f32
+    ) -> Rgba {
+        let a_red = -0.5 * p0.red as f32 + 1.5 * p1.red as f32 - 1.5 * p2.red as f32 + 0.5 * p3.red as f32;
+        let a_green = -0.5 * p0.green as f32 + 1.5 * p1.green as f32 - 1.5 * p2.green as f32 + 0.5 * p3.green as f32;
+        let a_blue = -0.5 * p0.blue as f32 + 1.5 * p1.blue as f32 - 1.5 * p2.blue as f32 + 0.5 * p3.blue as f32;
+        let a_alpha = -0.5 * p0.alpha as f32 + 1.5 * p1.alpha as f32 - 1.5 * p2.alpha as f32 + 0.5 * p3.alpha as f32;
+
+        let b_red = p0.red as f32 - 2.5 * p1.red as f32 + 2.0 * p2.red as f32 - 0.5 * p3.red as f32;
+        let b_green = p0.green as f32 - 2.5 * p1.green as f32 + 2.0 * p2.green as f32 - 0.5 * p3.green as f32;
+        let b_blue = p0.blue as f32 - 2.5 * p1.blue as f32 + 2.0 * p2.blue as f32 - 0.5 * p3.blue as f32;
+        let b_alpha = p0.alpha as f32 - 2.5 * p1.alpha as f32 + 2.0 * p2.alpha as f32 - 0.5 * p3.alpha as f32;
+
+        let c_red = -0.5 * p0.red as f32 + 0.5 * p2.red as f32;
+        let c_green = -0.5 * p0.green as f32 + 0.5 * p2.green as f32;
+        let c_blue = -0.5 * p0.blue as f32 + 0.5 * p2.blue as f32;
+        let c_alpha = -0.5 * p0.alpha as f32 + 0.5 * p2.alpha as f32;
+
+        let d_red = p1.red as f32;
+        let d_green = p1.green as f32;
+        let d_blue = p1.blue as f32;
+        let d_alpha = p1.alpha as f32;
+
+        let red = a_red * factor * factor * factor + b_red * factor * factor + c_red * factor + d_red;
+        let green = a_green * factor * factor * factor + b_green * factor * factor + c_green * factor + d_green;
+        let blue = a_blue * factor * factor * factor + b_blue * factor * factor + c_blue * factor + d_blue;
+        let alpha = a_alpha * factor * factor * factor + b_alpha * factor * factor + c_alpha * factor + d_alpha;
+
+        Rgba {
+            red: (red.round()) as u8,
+            green: (green.round()) as u8,
+            blue: (blue.round()) as u8,
+            alpha: (alpha.round()) as u8
+        }
     }
 }
 
@@ -238,26 +281,26 @@ mod test {
     fn test_blur_sent_bad_factors() {
         let white = Rgba::white();
         let black = Rgba::black();
-        let blur = Rgba::blur(&white, 1.0, &black, 1.0);
-        assert!(blur.is_err());
+        let linear_interpolation = Rgba::linear_interpolation(&white, 1.0, &black, 1.0);
+        assert!(linear_interpolation.is_err());
     }
 
     #[test]
     fn test_blur_two_whites() {
         let white1 = Rgba::white();
         let white2 = Rgba::white();
-        let blur = Rgba::blur(&white1, 0.5, &white2, 0.5);
-        assert!(blur.is_ok());
-        assert!(blur.unwrap() == Rgba::white());
+        let linear_interpolation = Rgba::linear_interpolation(&white1, 0.5, &white2, 0.5);
+        assert!(linear_interpolation.is_ok());
+        assert!(linear_interpolation.unwrap() == Rgba::white());
     }
 
     #[test]
     fn test_blur_correct_color() {
         let white = Rgba::white();
         let black = Rgba::black();
-        let blur = Rgba::blur(&white, 0.5, &black, 0.5);
+        let linear_interpolation = Rgba::linear_interpolation(&white, 0.5, &black, 0.5);
         let gray = Rgba::rgb(128, 128, 128);
-        assert!(blur.is_ok());
-        assert!(blur.unwrap() == gray);
+        assert!(linear_interpolation.is_ok());
+        assert!(linear_interpolation.unwrap() == gray);
     }
 }
