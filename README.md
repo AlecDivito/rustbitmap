@@ -1,6 +1,6 @@
 # rustbitmap
-[![Build Status](https://travis-ci.org/AlecDivito/rusty-bitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rusty-bitmap)
-[![codecov](https://codecov.io/gh/AlecDivito/rusty-bitmap/branch/master/graph/badge.svg)](https://codecov.io/gh/AlecDivito/rusty-bitmap)
+[![Build Status](https://travis-ci.org/AlecDivito/rustbitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rustbitmap)
+[![codecov](https://codecov.io/gh/AlecDivito/rustbitmap/branch/master/graph/badge.svg)](https://codecov.io/gh/AlecDivito/rustbitmap)
 <br>
 A rust library that can read, write and edit bitmap files.
 

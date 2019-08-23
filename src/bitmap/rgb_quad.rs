@@ -143,7 +143,7 @@ mod test {
         let quad = RgbQuad::from(&b, BitDepth::Color16Bit);
         assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
 
-        b.resize_by(20.0);
+        b.resize_by(20.0).unwrap();
         let quad = RgbQuad::from(&b, BitDepth::AllColors);
         assert_eq!(quad.as_bytes().len(), quad.get_bytes_size() as usize);
 

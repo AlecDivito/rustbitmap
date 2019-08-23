@@ -59,17 +59,25 @@ impl BitMap {
     ///
     /// Create a new image from a list of pixels
     ///
-    pub fn create(width: u32, height: u32, pixels: Vec<Rgba>) -> Result<BitMap, &'static str> {
+    pub fn create(width: u32, height: u32, mut pixels: Vec<Rgba>) -> Result<BitMap, &'static str> {
         if (width * height) as usize != pixels.len() {
             return Err(
                 "The area of the image must match the number of pixels you are passing in.",
             );
         }
+        for x in 0..width {
+            for y in 0..height / 2 {
+                let bottom_y = height - y - 1;
+                let top_index = y * width + x;
+                let bottom_index = bottom_y * width + x;
+                pixels.swap(top_index as usize, bottom_index as usize);
+            }
+        }
         Ok(BitMap {
             filename: None,
             width,
             height,
-            pixels,
+            pixels: pixels,
         })
     }
 
@@ -1035,16 +1043,16 @@ mod test {
         let gray = Rgba::rgb(127, 127, 127);
         let red = Rgba::rgb(255, 0, 0);
         let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
-        let mut bitmap = BitMap::create(4, 1, pixels).unwrap();
+        let mut bitmap = BitMap::create(2, 2, pixels).unwrap();
         let temp_width = bitmap.get_width();
         let temp_height = bitmap.get_height();
         bitmap.rotate_left();
         assert_eq!(temp_width, bitmap.get_height());
         assert_eq!(temp_height, bitmap.get_width());
-        assert!(bitmap.get_pixel(0, 0).unwrap() == &red);
-        assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::black());
-        assert!(bitmap.get_pixel(0, 2).unwrap() == &Rgba::white());
-        assert!(bitmap.get_pixel(0, 3).unwrap() == &gray);
+        assert!(bitmap.get_pixel(0, 0).unwrap() == &Rgba::white());
+        assert!(bitmap.get_pixel(1, 0).unwrap() == &red);
+        assert!(bitmap.get_pixel(0, 1).unwrap() == &gray);
+        assert!(bitmap.get_pixel(1, 1).unwrap() == &Rgba::black());
     }
 
     #[test]
@@ -1052,15 +1060,15 @@ mod test {
         let gray = Rgba::rgb(127, 127, 127);
         let red = Rgba::rgb(255, 0, 0);
         let pixels = vec![gray, Rgba::white(), Rgba::black(), red];
-        let mut bitmap = BitMap::create(4, 1, pixels).unwrap();
+        let mut bitmap = BitMap::create(2, 2, pixels).unwrap();
         let temp_width = bitmap.get_width();
         let temp_height = bitmap.get_height();
         bitmap.rotate_right();
         assert_eq!(temp_width, bitmap.get_height());
         assert_eq!(temp_height, bitmap.get_width());
-        assert!(bitmap.get_pixel(0, 3).unwrap() == &red);
-        assert!(bitmap.get_pixel(0, 2).unwrap() == &Rgba::black());
-        assert!(bitmap.get_pixel(0, 1).unwrap() == &Rgba::white());
-        assert!(bitmap.get_pixel(0, 0).unwrap() == &gray);
+        assert!(bitmap.get_pixel(0, 0).unwrap() == &Rgba::black());
+        assert!(bitmap.get_pixel(1, 0).unwrap() == &gray);
+        assert!(bitmap.get_pixel(0, 1).unwrap() == &red);
+        assert!(bitmap.get_pixel(1, 1).unwrap() == &Rgba::white());
     }
 }
