@@ -27,7 +27,6 @@ pub struct BitData {
 impl BitData {
     ///
     /// Create bit data from from_slice of bytes
-    /// and some data that supports it
     ///
     pub fn from_slice(
         bit_stream: &[u8],

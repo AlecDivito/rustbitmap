@@ -64,7 +64,7 @@ impl File {
         // colors
         let offset = (file.get_byte_size() + info.get_byte_size()) as usize;
         let color_byte_size = info.get_colors_used() as usize * RgbQuad::single_rgb_quad_size();
-        size_clamp = size_clamp + color_byte_size;
+        size_clamp = offset + color_byte_size;
         let color_bytes = if byte_array.len() > size_clamp {
             &byte_array[offset..size_clamp]
         } else {

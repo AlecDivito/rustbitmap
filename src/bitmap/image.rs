@@ -601,12 +601,11 @@ impl BitMap {
     ///
     pub fn slow_resize_to(&mut self, width: u32, height: u32) {
         self.slow_resize(width, height);
-
     }
 
     ///
     /// Resize the current image by using bicubic interpolation algorithm
-    /// 
+    ///
     pub fn slow_resize(&mut self, width: u32, height: u32) {
         let new_area = width * height;
         let mut i2: Vec<Rgba> = vec![Rgba::black(); new_area as usize];
@@ -629,39 +628,74 @@ impl BitMap {
 
                 let mut colors: [Rgba; 4] = [Rgba::black(); 4];
 
+                let old_old_index = ((w.floor() * self.width as f32) + v.floor()) as usize;
 
                 // https://www.paulinternet.nl/?page=bicubic
                 // get the 3 colors from the old image
                 for i in 0..colors.len() {
                     let j = i as isize - 1;
-                    let y_index = w.floor() as isize + (self.width as isize * j);
-                    let old_index = if y_index >= 0 && y_index < (self.width * self.height) as isize {
-                        ((j * self.width as isize) + v.floor() as isize)
-                    } else if  (y_index + (self.width as isize * -1)) >= 0 && (y_index + (self.width as isize * -1)) < (self.width * self.height) as isize {
-                        (((j - 1) * self.width as isize) + v.floor() as isize)
+                    let old_index_modified = (j * self.width as isize) + old_old_index as isize;
+                    let old_index = if old_index_modified < 0
+                        || old_index_modified >= (self.width * self.height) as isize
+                    {
+                        // we have a problem because current index is less then
+                        // the actual image
+                        if i == 0 {
+                            old_old_index
+                        } else if i == 1 {
+                            old_old_index
+                        } else if i == 2 {
+                            let check_old_index_modified =
+                                (j - 1 * self.width as isize) + old_old_index as isize;
+                            if check_old_index_modified < 0
+                                || check_old_index_modified > (self.width * self.height) as isize
+                            {
+                                check_old_index_modified as usize
+                            } else {
+                                old_old_index
+                            }
+                        } else {
+                            old_old_index
+                        }
                     } else {
-                        ((w.floor() * self.width as f32) + v.floor()) as isize
+                        old_index_modified as usize
                     };
 
-                    let width_index = old_index % self.width as isize;
-                    let p0 = if width_index - 1 < 0 { old_index } else { old_index - 1 } as usize;
-                    let p1 = old_index as usize;
-                    let p2 = if width_index + 1 > self.width as isize - 1 { old_index } else { old_index + 1 } as usize;
-                    let p3 = if width_index + 2 > self.width as isize - 1 { p2 } else { p2 + 1 };
+                    let width_index = old_index as isize % self.width as isize;
 
-                    let color = Rgba::cubic_interpolate(&self.pixels[p0],
+                    let p0 = if width_index - 1 < 0 {
+                        old_index
+                    } else {
+                        old_index - 1
+                    };
+
+                    let p1 = old_index;
+
+                    let p2 = if width_index + 1 > self.width as isize - 1 {
+                        old_index
+                    } else {
+                        old_index + 1
+                    };
+
+                    let p3 = if width_index + 2 > self.width as isize - 1 {
+                        p2
+                    } else {
+                        p2 + 1
+                    };
+
+                    let color = Rgba::cubic_interpolate(
+                        &self.pixels[p0],
                         &self.pixels[p1],
                         &self.pixels[p2],
                         &self.pixels[p3],
-                        x_factor);
+                        x_factor,
+                    );
 
                     colors[i] = color;
                 }
-
-                if new_index >= 54 {
-                    println!("{}", "stop");
-                }
-                let color = Rgba::cubic_interpolate(&colors[0], &colors[1], &colors[2], &colors[3], y_factor);
+                let color = Rgba::cubic_interpolate(
+                    &colors[0], &colors[1], &colors[2], &colors[3], y_factor,
+                );
 
                 i2[new_index] = color;
             }

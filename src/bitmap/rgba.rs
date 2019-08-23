@@ -198,24 +198,32 @@ impl Rgba {
     }
 
     ///
-    /// oooffff
-    /// 
-    pub fn cubic_interpolate(
-        p0: &Rgba,
-        p1: &Rgba,
-        p2: &Rgba,
-        p3: &Rgba,
-        factor: f32
-    ) -> Rgba {
-        let a_red = -0.5 * p0.red as f32 + 1.5 * p1.red as f32 - 1.5 * p2.red as f32 + 0.5 * p3.red as f32;
-        let a_green = -0.5 * p0.green as f32 + 1.5 * p1.green as f32 - 1.5 * p2.green as f32 + 0.5 * p3.green as f32;
-        let a_blue = -0.5 * p0.blue as f32 + 1.5 * p1.blue as f32 - 1.5 * p2.blue as f32 + 0.5 * p3.blue as f32;
-        let a_alpha = -0.5 * p0.alpha as f32 + 1.5 * p1.alpha as f32 - 1.5 * p2.alpha as f32 + 0.5 * p3.alpha as f32;
+    /// Use cubic interpolation on 4 colors between range [0, 1] then find x as
+    /// a factor that is between [0, 1] (ex. 0.5)
+    ///
+    /// Reference:
+    /// https://www.paulinternet.nl/?page=bicubic
+    ///
+    pub fn cubic_interpolate(p0: &Rgba, p1: &Rgba, p2: &Rgba, p3: &Rgba, factor: f32) -> Rgba {
+        if factor == 0.0 {
+            return p1.clone();
+        }
+        let a_red =
+            -0.5 * p0.red as f32 + 1.5 * p1.red as f32 - 1.5 * p2.red as f32 + 0.5 * p3.red as f32;
+        let a_green = -0.5 * p0.green as f32 + 1.5 * p1.green as f32 - 1.5 * p2.green as f32
+            + 0.5 * p3.green as f32;
+        let a_blue = -0.5 * p0.blue as f32 + 1.5 * p1.blue as f32 - 1.5 * p2.blue as f32
+            + 0.5 * p3.blue as f32;
+        let a_alpha = -0.5 * p0.alpha as f32 + 1.5 * p1.alpha as f32 - 1.5 * p2.alpha as f32
+            + 0.5 * p3.alpha as f32;
 
         let b_red = p0.red as f32 - 2.5 * p1.red as f32 + 2.0 * p2.red as f32 - 0.5 * p3.red as f32;
-        let b_green = p0.green as f32 - 2.5 * p1.green as f32 + 2.0 * p2.green as f32 - 0.5 * p3.green as f32;
-        let b_blue = p0.blue as f32 - 2.5 * p1.blue as f32 + 2.0 * p2.blue as f32 - 0.5 * p3.blue as f32;
-        let b_alpha = p0.alpha as f32 - 2.5 * p1.alpha as f32 + 2.0 * p2.alpha as f32 - 0.5 * p3.alpha as f32;
+        let b_green =
+            p0.green as f32 - 2.5 * p1.green as f32 + 2.0 * p2.green as f32 - 0.5 * p3.green as f32;
+        let b_blue =
+            p0.blue as f32 - 2.5 * p1.blue as f32 + 2.0 * p2.blue as f32 - 0.5 * p3.blue as f32;
+        let b_alpha =
+            p0.alpha as f32 - 2.5 * p1.alpha as f32 + 2.0 * p2.alpha as f32 - 0.5 * p3.alpha as f32;
 
         let c_red = -0.5 * p0.red as f32 + 0.5 * p2.red as f32;
         let c_green = -0.5 * p0.green as f32 + 0.5 * p2.green as f32;
@@ -227,16 +235,64 @@ impl Rgba {
         let d_blue = p1.blue as f32;
         let d_alpha = p1.alpha as f32;
 
-        let red = a_red * factor * factor * factor + b_red * factor * factor + c_red * factor + d_red;
-        let green = a_green * factor * factor * factor + b_green * factor * factor + c_green * factor + d_green;
-        let blue = a_blue * factor * factor * factor + b_blue * factor * factor + c_blue * factor + d_blue;
-        let alpha = a_alpha * factor * factor * factor + b_alpha * factor * factor + c_alpha * factor + d_alpha;
+        let red =
+            a_red * (factor * factor * factor) + b_red * (factor * factor) + c_red * factor + d_red;
+        let green = a_green * (factor * factor * factor)
+            + b_green * (factor * factor)
+            + c_green * factor
+            + d_green;
+        let blue = a_blue * (factor * factor * factor)
+            + b_blue * (factor * factor)
+            + c_blue * factor
+            + d_blue;
+        let alpha = a_alpha * (factor * factor * factor)
+            + b_alpha * (factor * factor)
+            + c_alpha * factor
+            + d_alpha;
+
+        // clamp values
+        let red = if red > 255.0 || red < 0.0 {
+            if red > 255.0 {
+                255
+            } else {
+                0
+            }
+        } else {
+            red.round() as u8
+        };
+        let green = if green > 255.0 || green < 0.0 {
+            if green > 255.0 {
+                255
+            } else {
+                0
+            }
+        } else {
+            green.round() as u8
+        };
+        let blue = if blue > 255.0 || blue < 0.0 {
+            if blue > 255.0 {
+                255
+            } else {
+                0
+            }
+        } else {
+            blue.round() as u8
+        };
+        let alpha = if alpha > 100.0 || alpha < 0.0 {
+            if alpha > 100.0 {
+                100
+            } else {
+                0
+            }
+        } else {
+            alpha.round() as u8
+        };
 
         Rgba {
-            red: (red.round()) as u8,
-            green: (green.round()) as u8,
-            blue: (blue.round()) as u8,
-            alpha: (alpha.round()) as u8
+            red,
+            green,
+            blue,
+            alpha,
         }
     }
 }
