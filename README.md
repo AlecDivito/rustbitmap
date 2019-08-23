@@ -9,13 +9,8 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rust-bitmap = "0.1.0"
+rustbitmap = "0.1.0"
 ```
-
-# Documentation
-
-Documentation can be found on github pages [Here](https://alecdivito.github.io/rust-bitmap/)
-
 # Getting start
 
 ## Reading Files and Creating bitmaps
