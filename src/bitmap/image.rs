@@ -455,10 +455,14 @@ impl BitMap {
     /// Resize the current image by using nearest neighbor algorithm. Scale image
     /// to image size * the factor
     ///
-    pub fn fast_resize_by(&mut self, factor: f32) {
+    pub fn fast_resize_by(&mut self, factor: f32) -> Result<(), &'static str> {
+        if factor <= 0.0 {
+            return Err("Can't resize by a negative value.");
+        }
         let width = (factor * (self.width as f32)).round();
         let height = (factor * (self.height as f32)).round();
         self.fast_resize(width as u32, height as u32);
+        Ok(())
     }
 
     ///
@@ -503,10 +507,14 @@ impl BitMap {
     /// Resize the current image by using bilinear interpolation algorithm. Scale
     /// image to image size * the factor
     ///
-    pub fn resize_by(&mut self, factor: f32) {
+    pub fn resize_by(&mut self, factor: f32) -> Result<(), &'static str> {
+        if factor <= 0.0 {
+            return Err("Can't resize by a negative value.");
+        }
         let width = (factor * (self.width as f32)).round();
         let height = (factor * (self.height as f32)).round();
         self.resize(width as u32, height as u32);
+        Ok(())
     }
 
     ///
@@ -589,10 +597,14 @@ impl BitMap {
     /// Resize the current image by using bicubic interpolation algorithm. Scale
     /// image to image size * the factor
     ///
-    pub fn slow_resize_by(&mut self, factor: f32) {
+    pub fn slow_resize_by(&mut self, factor: f32) -> Result<(), &'static str> {
+        if factor <= 0.0 {
+            return Err("Can't resize by a negative value.");
+        }
         let width = (factor * (self.width as f32)).round();
         let height = (factor * (self.height as f32)).round();
         self.slow_resize(width as u32, height as u32);
+        Ok(())
     }
 
     ///
@@ -635,6 +647,10 @@ impl BitMap {
                 for i in 0..colors.len() {
                     let j = i as isize - 1;
                     let old_index_modified = (j * self.width as isize) + old_old_index as isize;
+
+                    // this is just trying to find the correct y index that is
+                    // inside the image if it's not, it will attempt to get the
+                    // nearest possible index that is valid
                     let old_index = if old_index_modified < 0
                         || old_index_modified >= (self.width * self.height) as isize
                     {
@@ -661,6 +677,7 @@ impl BitMap {
                         old_index_modified as usize
                     };
 
+                    // once we have the correct index on the y axis
                     let width_index = old_index as isize % self.width as isize;
 
                     let p0 = if width_index - 1 < 0 {
@@ -683,6 +700,9 @@ impl BitMap {
                         p2 + 1
                     };
 
+                    // now that we have our 4 colors and our factor that they
+                    // join on we can interpolate them
+                    // https://www.paulinternet.nl/?page=bicubic
                     let color = Rgba::cubic_interpolate(
                         &self.pixels[p0],
                         &self.pixels[p1],
@@ -693,6 +713,7 @@ impl BitMap {
 
                     colors[i] = color;
                 }
+                // interpolate all 4 rows into one pixel
                 let color = Rgba::cubic_interpolate(
                     &colors[0], &colors[1], &colors[2], &colors[3], y_factor,
                 );
@@ -960,12 +981,13 @@ mod test {
     #[test]
     fn test_resize_by() {
         let mut bitmap = BitMap::new(2, 2);
-        bitmap.resize_by(8.0);
+        bitmap.resize_by(8.0).unwrap();
         assert_eq!(bitmap.get_width(), 16);
         assert_eq!(bitmap.get_height(), 16);
-        bitmap.resize_by(0.25);
+        bitmap.resize_by(0.25).unwrap();
         assert_eq!(bitmap.get_width(), 4);
         assert_eq!(bitmap.get_height(), 4);
+        assert!(bitmap.resize_by(0.0).is_err());
     }
 
     #[test]
@@ -979,12 +1001,33 @@ mod test {
     #[test]
     fn test_fast_resize_by() {
         let mut bitmap = BitMap::new(2, 2);
-        bitmap.fast_resize_by(8.0);
+        bitmap.fast_resize_by(8.0).unwrap();
         assert_eq!(bitmap.get_width(), 16);
         assert_eq!(bitmap.get_height(), 16);
-        bitmap.fast_resize_by(0.25);
+        bitmap.fast_resize_by(0.25).unwrap();
         assert_eq!(bitmap.get_width(), 4);
         assert_eq!(bitmap.get_height(), 4);
+        assert!(bitmap.fast_resize_by(0.0).is_err());
+    }
+
+    #[test]
+    fn test_slow_resize_to() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.slow_resize_to(10, 10);
+        assert_eq!(bitmap.get_width(), 10);
+        assert_eq!(bitmap.get_height(), 10);
+    }
+
+    #[test]
+    fn test_slow_resize_by() {
+        let mut bitmap = BitMap::new(2, 2);
+        bitmap.slow_resize_by(8.0).unwrap();
+        assert_eq!(bitmap.get_width(), 16);
+        assert_eq!(bitmap.get_height(), 16);
+        bitmap.slow_resize_by(0.25).unwrap();
+        assert_eq!(bitmap.get_width(), 4);
+        assert_eq!(bitmap.get_height(), 4);
+        assert!(bitmap.slow_resize_by(0.0).is_err());
     }
 
     #[test]
