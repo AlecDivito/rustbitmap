@@ -5,6 +5,7 @@ use super::rgba::Rgba;
 ///
 /// In memory representation of a bitmap allowing for easier editing
 ///
+#[derive(Debug)]
 pub struct BitMap {
     /// file read from
     filename: Option<String>,
@@ -313,7 +314,7 @@ impl BitMap {
         for y in from_y..to_y {
             for x in from_x..to_x {
                 let index = self.get_index(x, y);
-                let colors_index = (((height - y - from_y - 1) * width) + x - from_x) as usize;
+                let colors_index = ((y - from_y) * width + x - from_x) as usize;
                 colors[colors_index] = self.pixels[index];
             }
         }
