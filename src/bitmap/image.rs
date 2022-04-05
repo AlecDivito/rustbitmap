@@ -5,6 +5,7 @@ use super::rgba::Rgba;
 ///
 /// In memory representation of a bitmap allowing for easier editing
 ///
+#[derive(Debug)]
 pub struct BitMap {
     /// file read from
     filename: Option<String>,
