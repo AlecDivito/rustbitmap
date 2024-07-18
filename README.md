@@ -1,26 +1,28 @@
 # rustbitmap
+
 [![Build Status](https://travis-ci.org/AlecDivito/rustbitmap.svg?branch=master)](https://travis-ci.org/AlecDivito/rustbitmap)
 [![codecov](https://codecov.io/gh/AlecDivito/rustbitmap/branch/master/graph/badge.svg)](https://codecov.io/gh/AlecDivito/rustbitmap)
 <br>
 A rust library that can read, write and edit bitmap files.
 
 # Usage
+
 Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rustbitmap = "0.1.0"
+rustbitmap = "0.2.0"
 ```
+
 # Getting start
 
 ## Reading Files and Creating bitmaps
+
 rust-bitmap makes it really easy to read in bitmaps and edit them. To load a
 bitmap from a file just pass in the string to the file. It's also possible to
 create plain white in memory bitmaps as well.
 
-```
-extern crate rustbitmap;
-
+```rust
 use rustbitmap::BitMap;
 use rustbitmap::Rgba;
 
@@ -43,9 +45,7 @@ To save a bitmap is very easy as well. There are 2 options to saving a bit map
 which is to try and save a simplified version or to save a default 24 bit color
 version.
 
-```
-extern crate rustbitmap;
-
+```rust
 use rustbitmap::BitMap;
 
 fn main() {
@@ -66,9 +66,7 @@ a range of different resizing tools such as nearest neighbor, bilinear interpola
 and bicubic interpolation. Using the different resizing tools we can create really
 cool gradients.
 
-```
-extern crate rustbitmap;
-
+```rust
 use rustbitmap::{ BitMap, Rgba };
 
 fn main() {
@@ -87,7 +85,7 @@ fn main() {
 
 If you want to crop an image or paste one bitmap into another it's really easy:
 
-```
+```rust
 fn main() {
    let mut bitmap = BitMap::new(24, 24).unwrap();
    let cropped = bitmap.crop(0, 0, 10, 10).unwrap();
@@ -105,9 +103,11 @@ fn main() {
 }
 ```
 
-# License
+## License
+
 Licensed under [MIT license](LICENSE) or http://opensource.org/licenses/MIT
 
-# Contribution
+## Contribution
+
 If you come by this project and want to contribute just post an issue, explaining
 what feature you would like to add or bug you ran into.

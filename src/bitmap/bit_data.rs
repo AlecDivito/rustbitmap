@@ -77,7 +77,7 @@ impl BitData {
         let mut shift: u32 = 0;
         for i in 0..bitmap.get_pixels().len() {
             let pixel = bitmap.get_pixels()[i];
-            let color_index = unique_colors.iter().position(|&c| c == pixel).unwrap() as u8;
+            let color_index = unique_colors.iter().position(|&c| *c == pixel).unwrap() as u8;
             counter += step as u32;
             shift = counter % 8;
             if step != 8 {
@@ -121,7 +121,7 @@ impl BitData {
             width: bitmap.get_width(),
             height: bitmap.get_height(),
             bit_depth,
-            colors: unique_colors,
+            colors: unique_colors.into_iter().map(Clone::clone).collect(),
             bytes,
         }
     }

@@ -6,7 +6,7 @@
 /// Alpha is managed between 0 - 100
 /// Red Green and Blue is managed between 0 - 255
 ///
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, Eq)]
 pub struct Rgba {
     red: u8,
     green: u8,
@@ -25,6 +25,16 @@ impl Rgba {
             blue: 255,
             alpha: 100,
         }
+    }
+
+    /// Check to see if a Rgba structure is black
+    pub fn is_black(&self) -> bool {
+        self.red == 0 && self.green == 0 && self.blue == 0 && self.alpha == 100
+    }
+
+    /// Check to see if a Rgba structure is white
+    pub fn is_white(&self) -> bool {
+        self.red == 255 && self.green == 255 && self.blue == 255 && self.alpha == 100
     }
 
     ///

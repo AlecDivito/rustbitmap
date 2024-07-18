@@ -52,7 +52,7 @@ impl RgbQuad {
     pub fn from(bitmap: &BitMap, bit_depth: BitDepth) -> RgbQuad {
         match bit_depth {
             BitDepth::Color2Bit | BitDepth::Color16Bit | BitDepth::Color256Bit => RgbQuad {
-                data: bitmap.get_all_unique_colors(),
+                data: bitmap.get_all_unique_colors().into_iter().map(Clone::clone).collect(),
             },
             _ => RgbQuad::empty(),
         }

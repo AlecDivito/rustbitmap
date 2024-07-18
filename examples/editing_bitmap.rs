@@ -1,5 +1,3 @@
-extern crate rustbitmap;
-
 use rustbitmap::{BitMap, Rgba};
 
 fn main() {

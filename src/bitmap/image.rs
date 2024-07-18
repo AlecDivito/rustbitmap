@@ -1,10 +1,14 @@
+use std::collections::HashSet;
+
 use super::bit_depth::BitDepth;
 use super::file::File;
 use super::rgba::Rgba;
+use super::util;
 
 ///
 /// In memory representation of a bitmap allowing for easier editing
 ///
+#[derive(Clone)]
 pub struct BitMap {
     /// file read from
     filename: Option<String>,
@@ -119,6 +123,11 @@ impl BitMap {
         self.width * self.height
     }
 
+    /// Get the pixel x,y coordinates as a tuple
+    pub fn get_center_pixel_coordinates(&self) -> (u32, u32) {
+        (self.width / 2, self.height / 2)
+    }
+
     ///
     /// Get the estimated file size in bytes
     ///
@@ -145,18 +154,12 @@ impl BitMap {
     ///
     /// Get all the unique colors from pixels, remove any duplicates
     ///
-    pub fn get_all_unique_colors(&self) -> Vec<Rgba> {
-        let mut unique_colors = Vec::new();
+    pub fn get_all_unique_colors(&self) -> Vec<&Rgba> {
+        let mut unique_colors = HashSet::new();
         for c in &self.pixels {
-            if !unique_colors.contains(c) {
-                unique_colors.push(c.clone());
-            }
-            // TODO: Magic number???
-            if unique_colors.len() > 256 {
-                break;
-            }
+            unique_colors.insert(c);
         }
-        unique_colors
+        unique_colors.into_iter().collect::<Vec<_>>()
     }
 
     ///
@@ -246,21 +249,14 @@ impl BitMap {
     ///
     fn save_as_file(&self, filename: &str, bit_depth: BitDepth) -> Result<(), String> {
         let file = File::create(self, bit_depth);
-        use std::error::Error;
         use std::io::Write;
         let mut bit_stream = file.to_bytes();
         let mut file = match std::fs::File::create(filename) {
-            Err(why) => {
-                return Err(
-                    format!("Couldn't create {}: {}", filename, why.description()).to_owned(),
-                )
-            }
+            Err(why) => return Err(format!("Couldn't create {}: {}", filename, why).to_owned()),
             Ok(file) => file,
         };
         match file.write_all(bit_stream.as_mut_slice()) {
-            Err(why) => {
-                Err(format!("Couldn't write to {}: {}", filename, why.description()).to_owned())
-            }
+            Err(why) => Err(format!("Couldn't write to {}: {}", filename, why).to_owned()),
             Ok(_) => Ok(()),
         }
     }
@@ -271,6 +267,31 @@ impl BitMap {
 /// bit maps using other bitmaps
 ///
 impl BitMap {
+    /// Crop an image by a percentage. The tuple provides the x and y coordinates
+    /// to crop by. View [BitMap::crop_by_coordinates] for more information.
+    pub fn crop_by_tuple(&self, (x, y): (u32, u32), crop_factor: f32) -> Result<BitMap, &'static str> {
+        self.crop_by_coordinates(x, y, crop_factor)
+    }
+
+    /// Crop an image by a percentage. The center of the crop will be the provided
+    /// x and y coordinates. The crop factor must be between 0 and 1.
+    /// 
+    /// The crop will be computed so that it always fits inside of the image. This
+    /// means that the center x and y coordinates maybe changed so that the cropping
+    /// operation doesn't fail. For example, if a corp factor is set at 0.5 (50%)
+    /// and the x and y is set at 0 and 0 respectively, new x and y coordinates
+    /// will be computed so that the crop will work. In this example, the x and
+    /// y coordinates would change to by 25% pixel place of the image. 
+    pub fn crop_by_coordinates(&self, x: u32, y: u32, crop_factor: f32) -> Result<BitMap, &'static str> {
+        if crop_factor >= 1.0 && crop_factor <= 0.0 {
+            return Err("Crop factor must be between the value of 0 and 1.");
+        }
+
+        let (from_x, from_y, to_x, to_y) = util::calculate_crop(self.width, self.height, x, y, crop_factor);
+
+        self.crop(from_x, from_y, to_x, to_y)
+    }
+
     ///
     /// Crop a given area of the current image
     ///
@@ -310,11 +331,14 @@ impl BitMap {
         }
 
         let mut colors = vec![Rgba::white(); area as usize];
+        let mut counter = 0;
         for y in from_y..to_y {
             for x in from_x..to_x {
                 let index = self.get_index(x, y);
-                let colors_index = (((height - y - from_y - 1) * width) + x - from_x) as usize;
-                colors[colors_index] = self.pixels[index];
+                // let colors_index = (((height - y - from_y - 1) * width) + x - from_x) as usize;
+                // let colors_index = ((y - from_y) * width + x - from_x) as usize;
+                colors[counter] = self.pixels[index];
+                counter = counter + 1;
             }
         }
 
@@ -345,6 +369,34 @@ impl BitMap {
 
         for x in start_at_x..end_at_x {
             for y in start_at_y..end_at_y {
+                let bitmap_index = bitmap.get_index(x - start_at_x, y - start_at_y);
+                let self_index = self.get_index(x, y);
+                self.pixels[self_index] = bitmap.get_pixels()[bitmap_index];
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Similar to [BitMap::paste] however if the image overflows the container
+    /// image, the pixels will be cropped.
+    pub fn paste_and_crop(
+        &mut self,
+        bitmap: &BitMap,
+        start_at_x: u32,
+        start_at_y: u32,
+    ) -> Result<(), &'static str> {
+        let end_at_x = start_at_x + bitmap.get_width();
+        let end_at_y = start_at_y + bitmap.get_height();
+
+        for y in start_at_y..end_at_y {
+            if y >= self.height || y >= bitmap.height {
+                continue;
+            }
+            for x in start_at_x..end_at_x {
+                if x >= self.width || x > bitmap.width {
+                    break;
+                }
                 let bitmap_index = bitmap.get_index(x - start_at_x, y - start_at_y);
                 let self_index = self.get_index(x, y);
                 self.pixels[self_index] = bitmap.get_pixels()[bitmap_index];
@@ -397,6 +449,13 @@ impl BitMap {
             if c == &from {
                 c.recolor_to(&to);
             }
+        }
+    }
+
+    /// Replace the entire image with one color.
+    pub fn clear_image(&mut self, to: Rgba) {
+        for c in &mut self.pixels {
+            c.recolor_to(&to);
         }
     }
 
@@ -563,10 +622,13 @@ impl BitMap {
 
                 let index = ((y * width) + x) as usize;
 
-                let index_1 = ((w.floor() * self.width as f32) + v.floor()) as usize;
+                let mut index_1 = ((w.floor() * self.width as f32) + v.floor()) as usize;
                 let mut index_2 = index_1 + 1;
                 let mut index_3 = index_1 + self.width as usize;
                 let mut index_4 = index_3 + 1;
+                if index_1 >= self.get_size() as usize {
+                    index_1 = self.get_size() as usize - 1;
+                }
                 if index_2 >= self.get_size() as usize {
                     index_2 = index_1;
                 }
@@ -648,7 +710,10 @@ impl BitMap {
 
                 let mut colors: [Rgba; 4] = [Rgba::black(); 4];
 
-                let old_old_index = ((w.floor() * self.width as f32) + v.floor()) as usize;
+                let mut old_old_index = ((w.floor() * self.width as f32) + v.floor()) as usize;
+                if old_old_index >= (self.width * self.height) as usize {
+                    old_old_index = old_old_index - 1
+                }
 
                 // https://www.paulinternet.nl/?page=bicubic
                 // get the 3 colors from the old image
@@ -847,7 +912,8 @@ mod test {
 
     #[test]
     fn get_all_unique_colors() {
-        let result = BitMap::new(100, 100).get_all_unique_colors();
+        let map = BitMap::new(100, 100);
+        let result = map.get_all_unique_colors();
         assert_eq!(result.len(), 1);
     }
 
@@ -966,7 +1032,6 @@ mod test {
             for y in 0..10 {
                 if (x < 2 || x > 7) || (y < 2 || y > 7) {
                     image.set_pixel(x, y, Rgba::black()).unwrap();
-                    println!("{} {}", x, y);
                 }
             }
         }
@@ -1070,5 +1135,16 @@ mod test {
         assert!(bitmap.get_pixel(1, 0).unwrap() == &gray);
         assert!(bitmap.get_pixel(0, 1).unwrap() == &red);
         assert!(bitmap.get_pixel(1, 1).unwrap() == &Rgba::white());
+    }
+
+    #[test]
+    fn crop_and_paste() {
+        let mut white = BitMap::new(10, 10);
+        let mut black = BitMap::new(20, 20);
+        black.clear_image(Rgba::black());
+        white.paste_and_crop(&black, 0, 0).unwrap();
+        for pixel in white.get_pixels() {
+            assert!(pixel.is_black())
+        }
     }
 }

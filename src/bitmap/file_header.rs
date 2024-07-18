@@ -15,11 +15,11 @@ pub struct FileHeader {
 /// Used for constants
 ///
 impl FileHeader {
-    pub fn from_slice_range() -> std::ops::Range<usize> {
+    pub const fn from_slice_range() -> std::ops::Range<usize> {
         0..14
     }
 
-    pub fn estimated_byte_size() -> usize {
+    pub const fn estimated_byte_size() -> usize {
         14
     }
 }
