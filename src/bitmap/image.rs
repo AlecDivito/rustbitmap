@@ -1167,4 +1167,48 @@ mod test {
             assert!(pixel.is_black())
         }
     }
+
+    #[test]
+    fn test_closure () {
+        // Create a new blank bitmap
+        let mut bitmap = BitMap::new(10,10);
+
+        // set the color of a few pixels
+        let color1 = Rgba::rgba(5, 6, 7, 11);
+        bitmap.set_pixel(5, 4, color1);
+        bitmap.set_pixel(4, 4, color1);
+        bitmap.set_pixel(1, 2, color1);
+        let original_pixel1 = bitmap.get_pixel(5, 4);
+        let original_pixel2 = bitmap.get_pixel(4, 4);
+        let original_pixel3 = bitmap.get_pixel(1, 3);
+
+        // grab the color of a pixel that was not set
+        let color2 = bitmap.get_pixel(1, 1).unwrap().clone();
+
+        // sanity assertion
+        assert_ne!(color1, color2);
+
+        // not a very practical example but it is a good enough test
+        // basically just flip if the pixel has the new color or not
+        bitmap.apply_closure( |x, y, pixel| {
+            if *pixel == color1 { color2 }
+            else { color1 }
+        });
+
+        // the pixels that were set should be the original color
+        let new_pixel1 = bitmap.get_pixel(5, 4);
+        let new_pixel2 = bitmap.get_pixel(4, 4);
+        let new_pixel3 = bitmap.get_pixel(1, 2);
+        assert_eq!(new_pixel1, color2);
+        assert_eq!(new_pixel2, color2);
+        assert_eq!(new_pixel3, color2);
+
+        // all the original colored pixels should be the new color
+        assert_eq!(new_pixel4, color1);
+        assert_eq!(new_pixel5, color1);
+        assert_eq!(new_pixel6, color1);
+        let new_pixel4 = bitmap.get_pixel(2, 1);
+        let new_pixel5 = bitmap.get_pixel(6, 7);
+        let new_pixel6 = bitmap.get_pixel(8, 4);
+    }
 }
