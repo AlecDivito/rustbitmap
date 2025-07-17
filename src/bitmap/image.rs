@@ -429,6 +429,26 @@ impl BitMap {
     }
 
     ///
+    /// Apply a closure to all the pixels
+    /// @param {Fn(u32, u32, Rgba) -> Rgba} closure to apply
+    ///
+    pub fn apply_closure<F>(&mut self, f: F) -> Result<(), &'static str>
+    where
+        // F must be a closure that takes (u32, u32, &Rgba) as arguments
+        // And returns a new Rgba value
+        F: Fn(u32, u32, &Rgba) -> Rgba,
+    {
+        for x in 0..self.height {
+            for y in 0..self.width {
+                let index = self.get_index(x, y);
+                let pixel = &mut self.pixels[index];
+                *pixel = f(x, y, pixel);
+            }
+        }
+        Ok(())
+    }
+
+    ///
     /// Convert image from a colored image to gray
     ///
     pub fn color_to_gray(&mut self) {
