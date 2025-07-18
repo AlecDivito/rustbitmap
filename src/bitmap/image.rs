@@ -438,6 +438,15 @@ impl BitMap {
     }
 
     ///
+    /// Invert the colors of the image
+    ///
+    pub fn invert(&mut self) {
+        for c in &mut self.pixels {
+            c.invert();
+        }
+    }
+
+    ///
     /// Find all the pixels that are the same as the from color and convert them
     /// all to the "to" color.
     ///
@@ -1146,5 +1155,29 @@ mod test {
         for pixel in white.get_pixels() {
             assert!(pixel.is_black())
         }
+    }
+
+    #[test]
+    fn invert_test() {
+        //create a some images of B/W
+        let originally_white = BitMap::new(10, 10);
+        let mut originally_black = BitMap::new(10, 10);
+        originally_black.clear_image(Rgba::black());
+
+        //clone them
+        let mut make_white = originally_black.clone();
+        let mut make_black = originally_white.clone();
+
+        //sanity
+        assert_eq!(make_black, originally_white);
+        assert_eq!(make_white, originally_black);
+
+        //invert them
+        make_white.invert();
+        make_black.invert();
+
+        //test
+        assert_eq!(make_black, originally_black);
+        assert_eq!(make_white, originally_white);
     }
 }

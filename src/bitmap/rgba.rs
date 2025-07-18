@@ -159,6 +159,15 @@ impl Rgba {
     }
 
     ///
+    /// Invert the pixel color
+    ///
+    pub fn invert(&mut self) {
+        self.red = 255 - self.red.clamp(0, 255);
+        self.blue = 255 - self.blue.clamp(0, 255);
+        self.green = 255 - self.green.clamp(0, 255);
+    }
+
+    ///
     /// set all the colors to the same color
     ///
     fn set_gray_scale_pixel(&mut self, gray: u8) {
